@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <strings.h>
+#define MAX 86
 
 typedef struct oldestM{
     size_t year;
@@ -29,7 +30,8 @@ typedef struct sensor {
 
 typedef struct Nsensor{
     size_t ID;    
-    struct Nsesnor * tail;
+    size_t pedestrians;
+    struct Nsensor * tail;
 }TNodeS;
 
 typedef struct year {
@@ -55,5 +57,9 @@ queryADT newQuery(size_t yearFrom, size_t yearTo);
 void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians, size_t year);
 
 void freeQuery(queryADT q);
+
+TNodeS * makeSenLRec(TNodeS * l, TNodeS * aux, TSensor * vecSen, size_t i);
+
+void makeSenL(queryADT q);
 
 #endif

@@ -77,11 +77,11 @@ void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, si
         q->sensorsID[ID-1].oldest.dayN = dayN;
         q->sensorsID[ID-1].oldest.month = month;
         q->sensorsID[ID-1].oldest.time = time;
-        printf("peds: %10lu|\t", q->sensorsID[ID-1].oldest.old_count);
+        /*printf("peds: %10lu|\t", q->sensorsID[ID-1].oldest.old_count);
         printf("dayN: %10lu|\t", q->sensorsID[ID-1].oldest.dayN);
         printf("time: %10lu|\t", q->sensorsID[ID-1].oldest.time);
         printf("year: %10lu|\t", q->sensorsID[ID-1].oldest.year);
-        printf("month: %lu\n", q->sensorsID[ID-1].oldest.month);
+        printf("month: %lu\n", q->sensorsID[ID-1].oldest.month);*/
     }
 
     
@@ -92,6 +92,37 @@ void insertYearL(queryADT query, TYear * years){
     query->years = years; 
 }
 
+
+TNodeS * makeSenLRec(TNodeS * l, TNodeS * aux, TSensor * vecSen, size_t i){
+    if(l == NULL || l->pedestrians > aux->pedestrians 
+        || (l->pedestrians == aux->pedestrians && strcasecmp(vecSen[l->ID-1].name, vecSen[i].name)>0)){
+        aux->tail = l;
+        return aux;
+    }
+    l->tail = makeSenLRec(l->tail, aux, vecSen, i);
+    return l;
+}
+
+
+void makeSenL(queryADT q){
+    for(int i = 0; i < MAX; i++){
+        TNodeS * aux= malloc(sizeof(TNodeS));
+         if(aux == NULL){
+            perror("Unable to allocate memory.");
+            exit(1);
+        }
+        aux->ID = i+1;
+        aux->pedestrians = q->sensorsID[i].total;
+        q->sensorsP = makeSenLRec(q->sensorsP, aux,  q->sensorsID, i);
+    }
+    TNodeS * aux = q->sensorsP;
+    while(aux!= NULL){
+        printf("ID:%lu\t", q->sensorsP->ID);
+        printf("Name:%lu\t", q->sensorsP->pedestrians);
+        aux = aux->tail;
+    }
+}
+
 static void freeRecYears(TYear * years){
     if(years == NULL){
         return;
@@ -99,12 +130,20 @@ static void freeRecYears(TYear * years){
     freeRecYears(years->tail);
     free(years);
 }
+static void freeRecSen(TNodeS * l){
+    if(l==NULL){
+        return;
+    }
+    freeRecSen(l->tail);
+    free(l);
+}
 
 void freeQuery(queryADT q) {
     for (int j=0; j<86; j++){
         free(q->sensorsID[j].name);
     }
     freeRecYears(q->years);
+    freeRecSen(q->sensorsP); 
     free(q->sensorsID);
     free(q);    
 }

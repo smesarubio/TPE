@@ -1,5 +1,4 @@
 
-#define MAX 86
 #include "queryTAD.h"
 #define LINES 150
 
@@ -23,6 +22,7 @@ int main(int argc, char *argv[]){
     insertVector(query, vectorS);
     TYear * years = createYearL(fReadings, query);
     insertYearL(query, years);
+    makeSenL(query);
     freeQuery(query);
     fclose(fReadings);
     fclose(fSensor);
@@ -84,7 +84,6 @@ TYear * createYearL (FILE * fReadings, queryADT query){
     char line2[LINES];
     fgets(line2, LINES, fReadings);
     while (!feof(fReadings)){
-                printf("HOLA\n");
         for (int i = 0; fgets(line2, LINES, fReadings); i++){
             char * value = strtok(line2, ";");//YEAR
             while (value != NULL){
