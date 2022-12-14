@@ -5,7 +5,7 @@
 
 enum month{January = 1, February, March, April, May, June, July, August, September, October, November, December};
 
-char dayToNum(char * s);
+size_t dayToNum(char * s);
 TSensor * createSensorL(FILE * fSensor);
 
 int main(int argc, char *argv[]){
@@ -16,10 +16,11 @@ int main(int argc, char *argv[]){
         perror("Unable to open file.");
         exit(1);
     }       
-    queryADT query = newQuery(); 
+    queryADT query = newQuery(argv[3], argv[4]); 
     TSensor * vectorS = createSensorL(fSensor);
     insertVector(query, vectorS);
-    //TYear * years = createYearL(fReadings);
+    TYear * years = createYearL(fReadings, query);
+    insertYearL(query, years);
     freeQuery(query);
     fclose(fReadings);
     fclose(fSensor);
@@ -57,7 +58,7 @@ TSensor * createSensorL(FILE * fSensor){
 }
 
 //returns 1 for weekend or 0 for weekday
-char dayToNum(char * s){               
+size_t dayToNum(char * s){               
     return s[0] == 'S' || s[0] == 's'; 
 }
 
@@ -66,15 +67,7 @@ size_t monthToNum (char * s){
 
 }
 
-char dateCmp(size_t month1, size_t day1, size_t month2, size_t day2){
-    if (month1 < month2){
-        return 1;
-    }
-    if (month1 == month2){
-        return day1 < day2;
-    }
-    return 0;
-}
+
 
 TYear * addRec(TYear * years, TYear * ans){
     if (years == NULL || years->year < ans->year){
@@ -85,18 +78,12 @@ TYear * addRec(TYear * years, TYear * ans){
         years->total += ans->total;
         years->Dweek += ans->Dweek;
         years->Dweekend += ans->Dweekend;
-        if(dateCmp(ans->month, ans->dayN, years->month, years->dayN) != 0){  //el nuevo nodo tiene una menor fecha
-            years->dayN = ans->dayN;
-            years->month = ans->month;
-            years->time = ans->time;
-            years->old_count = ans->old_count;
-        }       
     }
-    years->tail = ans;
+    years->tail = addRec(years->tail, ans);
     return years;
 }
 
-TYear * createYearL (FILE * fReadings){
+TYear * createYearL (FILE * fReadings, queryADT query){
     TYear * list = malloc(sizeof(TYear));
     char line2[LINES];
     fgets(line2, LINES, fReadings);
@@ -104,21 +91,32 @@ TYear * createYearL (FILE * fReadings){
         for (int i =0; fgets(line2, LINES, fReadings); i++){
             char * value = strtok(line2, ";");
             while (value != NULL){
+                size_t month, dayN, ID, count, time, day;
                 TYear * years = malloc(sizeof(TYear));
-                value = strtok(NULL, ";");
+                value = strtok(NULL, ";");//YEAR
                 years->year = atoi(value);
-                value = strtok(NULL, ";");
-                years->month = monthToNum(value);
-                value = strtok(NULL, ";");
-                years->day = dayToNum(value);
-                value = strtok(NULL, ";");
-                years->dayN = atoi(value);
+                value = strtok(NULL, ";");//MONTH
+                month = monthToNum(value);
+                value = strtok(NULL, ";"); //DAY
+                day = dayToNum(value);
+                value = strtok(NULL, ";");//DAYN
+                dayN = atoi(value);
                 value = strtok(NULL, ";"); //ID
+                ID = atoi(value);
                 value = strtok(NULL, ";"); //TIME 
+                time = atoi(value);
                 value = strtok(NULL, ";"); //COUNTS 
-                addRec(list, years);
+                count = atoi(value);
+                if(day){
+                    years->Dweekend += count;
+                } else{
+                    years->Dweek += count;
+                }
+                years->total += count;
+                list = addRec(list, years);
+                addOldest(query, ID, month, dayN, time, count);
                 value = strtok(NULL, ";"); //siguiente
-                free(years); 
+                //free(years); 
             }
         }
     }

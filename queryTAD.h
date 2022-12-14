@@ -42,7 +42,13 @@ typedef struct queryCDT * queryADT;
 
 void insertVector(queryADT q, TSensor * vec);
 
-queryADT newQuery();
+void insertYearL(queryADT query, TYear * years);
+
+queryADT newQuery(size_t yearFrom, size_t yearTo);
+
+char dateCmp(size_t month1, size_t day1, size_t month2, size_t day2);
+
+void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians);
 
 void freeQuery(queryADT q);
 
