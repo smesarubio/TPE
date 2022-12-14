@@ -3,20 +3,22 @@
 #include "queryTAD.h"
 #define LINES 150
 
-enum month{January = 1, February, March, April, May, June, July, August, September, October, November, December};
+//enum month{January = 1, February, March, April, May, June, July, August, September, October, November, December};
 
 size_t dayToNum(char * s);
+TYear * createYearL (FILE * fReadings, queryADT query);
 TSensor * createSensorL(FILE * fSensor);
 
 int main(int argc, char *argv[]){
-
     FILE * fSensor = fopen(argv[1], "rt");        
     FILE * fReadings = fopen(argv[2], "rt");
     if (fSensor == NULL || fReadings == NULL){
         perror("Unable to open file.");
         exit(1);
     }       
-    queryADT query = newQuery(argv[3], argv[4]); 
+    size_t yearFrom = atoi(argv[3]);
+    size_t yearTo = atoi(argv[4]);
+    queryADT query = newQuery(yearFrom, yearTo); 
     TSensor * vectorS = createSensorL(fSensor);
     insertVector(query, vectorS);
     TYear * years = createYearL(fReadings, query);
@@ -57,29 +59,19 @@ TSensor * createSensorL(FILE * fSensor){
     return ans;
 }
 
-//returns 1 for weekend or 0 for weekday
-size_t dayToNum(char * s){               
-    return s[0] == 'S' || s[0] == 's'; 
-}
-
-
-size_t monthToNum (char * s){
-
-}
-
-
-
 TYear * addRec(TYear * years, TYear * ans){
-    if (years == NULL || years->year < ans->year){
+    if (years == NULL || years->year < ans->year){  //el nodo no existia, lo agrego
         ans->tail = years;
         return ans;
     }
-    if(years->year == ans->year){
+    if(years->year == ans->year){   //ya existia el nodo
         years->total += ans->total;
         years->Dweek += ans->Dweek;
         years->Dweekend += ans->Dweekend;
+        free(ans);
+        return years;
     }
-    years->tail = addRec(years->tail, ans);
+    years->tail = addRec(years->tail, ans);  //sigo buscando
     return years;
 }
 
@@ -88,13 +80,14 @@ TYear * createYearL (FILE * fReadings, queryADT query){
     char line2[LINES];
     fgets(line2, LINES, fReadings);
     while (!feof(fReadings)){
-        for (int i =0; fgets(line2, LINES, fReadings); i++){
-            char * value = strtok(line2, ";");
+                printf("HOLA\n");
+        for (int i = 0; fgets(line2, LINES, fReadings); i++){
+            char * value = strtok(line2, ";");//YEAR
             while (value != NULL){
-                size_t month, dayN, ID, count, time, day;
+                size_t month, dayN, ID, count, time, day, year;
                 TYear * years = malloc(sizeof(TYear));
-                value = strtok(NULL, ";");//YEAR
-                years->year = atoi(value);
+                year = atoi(value);
+                years->year = year;
                 value = strtok(NULL, ";");//MONTH
                 month = monthToNum(value);
                 value = strtok(NULL, ";"); //DAY
@@ -114,11 +107,12 @@ TYear * createYearL (FILE * fReadings, queryADT query){
                 }
                 years->total += count;
                 list = addRec(list, years);
-                addOldest(query, ID, month, dayN, time, count);
+                addOldest(query, ID, month, dayN, time, count, year);
                 value = strtok(NULL, ";"); //siguiente
                 //free(years); 
             }
         }
     }
+    return list;
 }
 

@@ -9,6 +9,14 @@
 #include <string.h>
 #include <strings.h>
 
+typedef struct oldestM{
+    size_t year;
+    size_t time;
+    size_t old_count;
+    size_t month;
+    size_t dayN; //day as a number
+}oldestM;
+
 typedef struct sensor {
     size_t total;
     char * name;
@@ -23,13 +31,6 @@ typedef struct Nsensor{
     struct Nsesnor * tail;
 }TNodeS;
 
-typedef struct oldestM{
-    size_t time;
-    size_t old_count;
-    size_t month;
-    size_t dayN; //day as a number
-}oldestM;
-
 typedef struct year {
     size_t year;
     size_t total; 
@@ -42,13 +43,17 @@ typedef struct queryCDT * queryADT;
 
 void insertVector(queryADT q, TSensor * vec);
 
+size_t dayToNum(char * s);
+
+size_t monthToNum (char * s);
+
 void insertYearL(queryADT query, TYear * years);
 
 queryADT newQuery(size_t yearFrom, size_t yearTo);
 
-char dateCmp(size_t month1, size_t day1, size_t month2, size_t day2);
+char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size_t month2, size_t day2);
 
-void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians);
+void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians, size_t year);
 
 void freeQuery(queryADT q);
 

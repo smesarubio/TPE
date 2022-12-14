@@ -30,7 +30,25 @@ void insertVector(queryADT q, TSensor * vec){
     }*/
 }
 
+//returns 1 for weekend or 0 for weekday
+size_t dayToNum(char * s){               
+    return s[0] == 'S' || s[0] == 's'; 
+}
+
+size_t monthToNum (char * s){
+    char *months[] = {"January", "February", "March", "April","May", "June", "July", "August", "September", "October", "November", "December"};
+    for (int i=0; i<12; i++){
+        if (strcasecmp(s, months[i]) == 0){
+            return i+1;
+        }
+    }
+    return -1;
+}
+
 char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size_t month2, size_t day2){
+    if (year1 < year2){
+        return 1;
+    }
     if(month1 == month2 && day1==day2){
         return 0; // mismo día
     }
@@ -43,18 +61,17 @@ char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size_t mont
     return -1; // día dos antes que día uno.
 }
 
-void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians){
-    int c = dateCmp(q->sensorsID[ID].oldest.month, month, q->sensorsID[ID].oldest.dayN, dayN);
+void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians, size_t year){
+    int c = dateCmp(q->sensorsID[ID - 1].oldest.year, year,q->sensorsID[ID - 1].oldest.month, month, q->sensorsID[ID - 1].oldest.dayN, dayN);
     if(c==-1){
-        q->sensorsID[ID].oldest->old_count = pedestrians;
-        q->sensorsID[ID].oldest->dayN = dayN;
-        q->sensorsID[ID].oldest->month = month;
-        printf("peds: %lu\t", q->sensorsID[ID].oldest->old_count);
-        printf("dayN: %lu\t", q->sensorsID[ID].oldest->dayN);
-        printf("month: %lu\n", q->sensorsID[ID].oldest->month);
+        q->sensorsID[ID].oldest.old_count = pedestrians;
+        q->sensorsID[ID].oldest.dayN = dayN;
+        q->sensorsID[ID].oldest.month = month;
+        //printf("peds: %lu\t", q->sensorsID[ID].oldest.old_count);
+        //printf("dayN: %lu\t", q->sensorsID[ID].oldest.dayN);
+        //printf("month: %lu\n", q->sensorsID[ID].oldest.month);
     }
     //si c = 1 o c = 0, no cambia el oldest.
-
 }
 
 void insertYearL(queryADT query, TYear * years){
