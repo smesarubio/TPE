@@ -2,7 +2,12 @@
 #define QUERY
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <string.h>
+#include <strings.h>
 
 
 typedef struct sensor {
@@ -23,7 +28,7 @@ typedef struct year {
     size_t total; 
     size_t Dweek;
     size_t month;
-    //bool day; //1 for weekend, 0 for weekday
+    char day; //1 for weekend, 0 for weekday
     size_t dayN; //day as a number
     size_t time;
     size_t Dweekend;

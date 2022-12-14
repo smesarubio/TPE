@@ -1,18 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <math.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <string.h>
-#include <strings.h>
+
 #define MAX 86
 #include "queryTAD.h"
 #define LINES 150
 
 enum month{January = 1, February, March, April, May, June, July, August, September, October, November, December};
 
-bool dayToNum(char * s);
+char dayToNum(char * s);
 TSensor * createSensorL(FILE * fSensor);
 
 int main(int argc, char *argv[]){
@@ -63,19 +56,32 @@ TSensor * createSensorL(FILE * fSensor){
     return ans;
 }
 
-
-bool dayToNum(char * s){
-    return s[0] == 'S' || s[0] == 's';
+//returns 1 for weekend or 0 for weekday
+char dayToNum(char * s){               
+    return s[0] == 'S' || s[0] == 's'; 
 }
 
 
 size_t monthToNum (char * s){
 
 }
-TYear * addRec(TYear * years, TSensor * ans){
-    if (){
 
+char dateCmp(){
+    
+}
+
+TYear * addRec(TYear * years, TYear * ans){
+    if (years == NULL || years->year < ans->year){
+        ans->tail = years;
+        return ans;
     }
+    if(years->year == ans->year){
+        years->total += ans->total;
+        years->Dweek += ans->Dweek;
+        years->Dweekend += ans->Dweekend;
+        if()       
+    }
+    years->tail = 
 }
 
 TYear * createYearL (FILE * fReadings){
@@ -96,10 +102,9 @@ TYear * createYearL (FILE * fReadings){
                 value = strtok(NULL, ";");
                 years->dayN = atoi(value);
                 value = strtok(NULL, ";");
-
                 value = strtok(NULL, ";");
                 addRec(list, years);
-                free(years);
+                free(years); 
             }
         }
     }
