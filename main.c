@@ -7,7 +7,7 @@
 
 size_t dayToNum(char * s);
 TYear * createYearL (FILE * fReadings, queryADT query);
-TSensor * createSensorL(FILE * fSensor);
+TSensor * createSensorV(FILE * fSensor);
 
 int main(int argc, char *argv[]){
     FILE * fSensor = fopen(argv[1], "rt");        
@@ -19,7 +19,7 @@ int main(int argc, char *argv[]){
     size_t yearFrom = atoi(argv[3]);
     size_t yearTo = atoi(argv[4]);
     queryADT query = newQuery(yearFrom, yearTo); 
-    TSensor * vectorS = createSensorL(fSensor);
+    TSensor * vectorS = createSensorV(fSensor);
     insertVector(query, vectorS);
     TYear * years = createYearL(fReadings, query);
     insertYearL(query, years);
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
-TSensor * createSensorL(FILE * fSensor){
+TSensor * createSensorV(FILE * fSensor){
     TSensor * ans = calloc(MAX, sizeof(TSensor));
     if (ans == NULL){
         perror("Unable to allocate memory.");
@@ -50,6 +50,7 @@ TSensor * createSensorL(FILE * fSensor){
                     exit(1);
                 }
                 strcpy(ans[pos - 1].name, value);
+                ans[pos-1].oldest.used = 0;
                 value = strtok(NULL, ";");
                 ans[pos - 1].flag = *value; 
                 value = strtok(NULL, ";");
@@ -60,7 +61,10 @@ TSensor * createSensorL(FILE * fSensor){
 }
 
 TYear * addRec(TYear * years, TYear * ans){
-    if (years == NULL || years->year < ans->year){  //el nodo no existia, lo agrego
+    if(ans==NULL){
+        return years;
+    }
+    if ( years == NULL || years->year < ans->year){  //el nodo no existia, lo agrego
         ans->tail = years;
         return ans;
     }
@@ -76,7 +80,7 @@ TYear * addRec(TYear * years, TYear * ans){
 }
 
 TYear * createYearL (FILE * fReadings, queryADT query){
-    TYear * list = malloc(sizeof(TYear));
+    TYear * list = NULL;
     char line2[LINES];
     fgets(line2, LINES, fReadings);
     while (!feof(fReadings)){
@@ -90,10 +94,10 @@ TYear * createYearL (FILE * fReadings, queryADT query){
                 years->year = year;
                 value = strtok(NULL, ";");//MONTH
                 month = monthToNum(value);
-                value = strtok(NULL, ";"); //DAY
-                day = dayToNum(value);
-                value = strtok(NULL, ";");//DAYN
+                value = strtok(NULL, ";"); //DAYN
                 dayN = atoi(value);
+                value = strtok(NULL, ";");//DAY
+                day = dayToNum(value);
                 value = strtok(NULL, ";"); //ID
                 ID = atoi(value);
                 value = strtok(NULL, ";"); //TIME 

@@ -11,6 +11,7 @@
 
 typedef struct oldestM{
     size_t year;
+    char used;
     size_t time;
     size_t old_count;
     size_t month;
@@ -50,9 +51,7 @@ size_t monthToNum (char * s);
 void insertYearL(queryADT query, TYear * years);
 
 queryADT newQuery(size_t yearFrom, size_t yearTo);
-
-char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size_t month2, size_t day2);
-
+    
 void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians, size_t year);
 
 void freeQuery(queryADT q);

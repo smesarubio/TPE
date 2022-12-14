@@ -45,32 +45,46 @@ size_t monthToNum (char * s){
     return -1;
 }
 
-char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size_t month2, size_t day2){
+static char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size_t month2, size_t day2, char * usedFlag,size_t time1 , size_t time2){
+    if(*usedFlag==0){
+        *usedFlag = 1;
+        return -1;
+    }
     if (year1 < year2){
         return 1;
     }
-    if(month1 == month2 && day1==day2){
+    if(month1 == month2 && day1==day2 && year1==year2 && time1 == time2){
         return 0; // mismo día
     }
     if (month1 < month2){
         return 1; // día uno antes que día dos.
     }
-    if (month1 == month2){
+    if(month1 == month2 && day1 == day2){
+        return time1<time2;
+    }
+    if (month1 == month2 ){
         return day1 < day2;
     }
     return -1; // día dos antes que día uno.
 }
 
 void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians, size_t year){
-    int c = dateCmp(q->sensorsID[ID - 1].oldest.year, year,q->sensorsID[ID - 1].oldest.month, month, q->sensorsID[ID - 1].oldest.dayN, dayN);
+    int c = dateCmp(q->sensorsID[ID - 1].oldest.year, year,q->sensorsID[ID - 1].oldest.month, month, q->sensorsID[ID - 1].oldest.dayN, dayN, &(q->sensorsID[ID-1].oldest.used),q->sensorsID[ID - 1].oldest.time, time);
+    // printf("%i\n", c);
     if(c==-1){
-        q->sensorsID[ID].oldest.old_count = pedestrians;
-        q->sensorsID[ID].oldest.dayN = dayN;
-        q->sensorsID[ID].oldest.month = month;
-        //printf("peds: %lu\t", q->sensorsID[ID].oldest.old_count);
-        //printf("dayN: %lu\t", q->sensorsID[ID].oldest.dayN);
-        //printf("month: %lu\n", q->sensorsID[ID].oldest.month);
+        q->sensorsID[ID-1].oldest.year = year;
+        q->sensorsID[ID-1].oldest.old_count = pedestrians;
+        q->sensorsID[ID-1].oldest.dayN = dayN;
+        q->sensorsID[ID-1].oldest.month = month;
+        q->sensorsID[ID-1].oldest.time = time;
+        printf("peds: %10lu|\t", q->sensorsID[ID-1].oldest.old_count);
+        printf("dayN: %10lu|\t", q->sensorsID[ID-1].oldest.dayN);
+        printf("time: %10lu|\t", q->sensorsID[ID-1].oldest.time);
+        printf("year: %10lu|\t", q->sensorsID[ID-1].oldest.year);
+        printf("month: %lu\n", q->sensorsID[ID-1].oldest.month);
     }
+
+    
     //si c = 1 o c = 0, no cambia el oldest.
 }
 
