@@ -93,13 +93,16 @@ void insertYearL(queryADT query, TYear * years){
 }
 
 
-TNodeS * makeSenLRec(TNodeS * l, TNodeS * aux, TSensor * vecSen, size_t i){
-    if(l == NULL || l->pedestrians > aux->pedestrians 
-        || (l->pedestrians == aux->pedestrians && strcasecmp(vecSen[l->ID-1].name, vecSen[i].name)>0)){
-        aux->tail = l;
-        return aux;
+static TNodeS * makeSenLRec(TNodeS * l, TNodeS * aux, TSensor * vecSen, size_t i){
+    // printf("%li\t", i);
+    if(vecSen[i].name != NULL){
+        if(l == NULL || l->pedestrians > aux->pedestrians 
+            || (l->pedestrians == aux->pedestrians && strcasecmp(vecSen[l->ID-1].name, vecSen[i].name)>0)){
+            aux->tail = l;
+            return aux;
+        }
+        l->tail = makeSenLRec(l->tail, aux, vecSen, i);    
     }
-    l->tail = makeSenLRec(l->tail, aux, vecSen, i);
     return l;
 }
 
@@ -107,20 +110,21 @@ TNodeS * makeSenLRec(TNodeS * l, TNodeS * aux, TSensor * vecSen, size_t i){
 void makeSenL(queryADT q){
     for(int i = 0; i < MAX; i++){
         TNodeS * aux= malloc(sizeof(TNodeS));
-         if(aux == NULL){
+        if(aux == NULL){
             perror("Unable to allocate memory.");
             exit(1);
         }
         aux->ID = i+1;
         aux->pedestrians = q->sensorsID[i].total;
+        aux->tail = NULL;
         q->sensorsP = makeSenLRec(q->sensorsP, aux,  q->sensorsID, i);
     }
-    TNodeS * aux = q->sensorsP;
-    while(aux!= NULL){
-        printf("ID:%lu\t", q->sensorsP->ID);
-        printf("Name:%lu\t", q->sensorsP->pedestrians);
-        aux = aux->tail;
-    }
+    // TNodeS * aux = q->sensorsP;
+    // while(aux!= NULL){
+    //     printf("ID:%lu\t", q->sensorsP->ID);
+    //     printf("Name:%lu\t", q->sensorsP->pedestrians);
+    //     aux = aux->tail;
+    // }
 }
 
 static void freeRecYears(TYear * years){
@@ -130,6 +134,8 @@ static void freeRecYears(TYear * years){
     freeRecYears(years->tail);
     free(years);
 }
+
+
 static void freeRecSen(TNodeS * l){
     if(l==NULL){
         return;
