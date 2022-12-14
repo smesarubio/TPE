@@ -9,13 +9,13 @@
 #include <string.h>
 #include <strings.h>
 
-
 typedef struct sensor {
     size_t total;
     char * name;
     size_t len;
     char flag;
     char defective;
+    oldestM oldest;
 }TSensor;
 
 typedef struct Nsensor{
@@ -23,14 +23,17 @@ typedef struct Nsensor{
     struct Nsesnor * tail;
 }TNodeS;
 
+typedef struct oldestM{
+    size_t time;
+    size_t old_count;
+    size_t month;
+    size_t dayN; //day as a number
+}oldestM;
+
 typedef struct year {
     size_t year;
     size_t total; 
     size_t Dweek;
-    size_t month;
-    char day; //1 for weekend, 0 for weekday
-    size_t dayN; //day as a number
-    size_t time;
     size_t Dweekend;
     struct year * tail;
 }TYear;

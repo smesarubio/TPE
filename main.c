@@ -66,8 +66,14 @@ size_t monthToNum (char * s){
 
 }
 
-char dateCmp(){
-    
+char dateCmp(size_t month1, size_t day1, size_t month2, size_t day2){
+    if (month1 < month2){
+        return 1;
+    }
+    if (month1 == month2){
+        return day1 < day2;
+    }
+    return 0;
 }
 
 TYear * addRec(TYear * years, TYear * ans){
@@ -79,9 +85,15 @@ TYear * addRec(TYear * years, TYear * ans){
         years->total += ans->total;
         years->Dweek += ans->Dweek;
         years->Dweekend += ans->Dweekend;
-        if()       
+        if(dateCmp(ans->month, ans->dayN, years->month, years->dayN) != 0){  //el nuevo nodo tiene una menor fecha
+            years->dayN = ans->dayN;
+            years->month = ans->month;
+            years->time = ans->time;
+            years->old_count = ans->old_count;
+        }       
     }
-    years->tail = 
+    years->tail = ans;
+    return years;
 }
 
 TYear * createYearL (FILE * fReadings){
@@ -101,9 +113,11 @@ TYear * createYearL (FILE * fReadings){
                 years->day = dayToNum(value);
                 value = strtok(NULL, ";");
                 years->dayN = atoi(value);
-                value = strtok(NULL, ";");
-                value = strtok(NULL, ";");
+                value = strtok(NULL, ";"); //ID
+                value = strtok(NULL, ";"); //TIME 
+                value = strtok(NULL, ";"); //COUNTS 
                 addRec(list, years);
+                value = strtok(NULL, ";"); //siguiente
                 free(years); 
             }
         }
