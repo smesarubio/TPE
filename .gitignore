@@ -50,3 +50,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+*.csv
+readings.csv:Zone.Identifier
+sensors.csv:Zone.Identifier
