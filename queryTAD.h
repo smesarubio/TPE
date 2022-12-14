@@ -36,6 +36,6 @@ void insertVector(queryADT q, TSensor * vec);
 
 queryADT newQuery();
 
-void freeQuery();
+void freeQuery(queryADT q);
 
 #endif

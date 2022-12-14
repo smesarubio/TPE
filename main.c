@@ -68,7 +68,7 @@ bool dayToNum(char * s){
     return s[0] == 'S' || s[0] == 's';
 }
 
-/*
+
 size_t monthToNum (char * s){
 
 }
@@ -104,4 +104,4 @@ TYear * createYearL (FILE * fReadings){
         }
     }
 }
-*/
+
