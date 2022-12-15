@@ -2,13 +2,19 @@
 #include <stdlib.h>
 #include "queryTAD.h"
 
+typedef struct defective{
+    size_t ID;
+    struct defective * tail;
+}Tdefective;
+
 typedef struct queryCDT{
     size_t yearFrom;
     size_t yearTo; 
-    TYear * years; //lista por aÃ±o
+    TYear * years; //lista por año
     TSensor * sensorsID;  //sensores ordenados por ID
     TNodeS * sensorsP; //sensores ordenados por peatones
     oldestM oldest[MAX];
+    Tdefective * defective; //lista de sensores defectuosos
 }queryCDT;
 
 queryADT newQuery(size_t yearFrom, size_t yearTo){
@@ -85,13 +91,16 @@ void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, si
         q->oldest[ID-1].dayN = dayN;
         q->oldest[ID-1].month = month;
         q->oldest[ID-1].time = time;
-        printf("%10lu/", q->oldest[ID-1].dayN);
+        /*printf("%10lu/", q->oldest[ID-1].dayN);
         printf("%lu/", q->oldest[ID-1].month);
         printf("%lu|\t", q->oldest[ID-1].year);
         printf("time: %10lu|\t", q->oldest[ID-1].time);
-        printf("peds: %10lu|\n", q->oldest[ID-1].old_count);
+        printf("peds: %10lu|\n", q->oldest[ID-1].old_count);*/
     }
     //si c = 1 o c = 0, no cambia el oldest.
+    if(year>q->yearFrom && year < q->yearFrom){
+        q->sensorsID[ID].defective = 1; 
+    }
 }
 
 void insertYearL(queryADT query, TYear * years){
@@ -117,10 +126,26 @@ static TNodeS * sortSensorL(TNodeS * l, size_t pedestrians, TSensor * vecSen, si
     return l;
 }
 
+static Tdefective * sortDefectiveL(Tdefective * def, size_t i, TSensor * vec){
+    if((def != NULL && vec[(def->ID)-1].name == NULL) || vec[i].name == NULL){
+        return def;
+    }
+    if(def==NULL || strcasecmp(vec[(def->ID)-1].name, vec[i].name)>0){
+        Tdefective * new = malloc(sizeof(Tdefective));
+        new->ID = i+1;
+        new->tail = def;
+        return new;
+    }
+    def->tail = sortDefectiveL(def->tail, i, vec);
+    return def;
+}
 
 void makeSenL(queryADT q){
     for(int i = 0; i < MAX; i++){
         q->sensorsP = sortSensorL(q->sensorsP, q->sensorsID[i].total, q->sensorsID, i);
+        if(q->sensorsID[i].defective == 0){
+            q->defective = sortDefectiveL(q->defective, i, q->sensorsID );
+        }
     }
     //TNodeS * aux = q->sensorsP;
     /*int j=0;
@@ -130,6 +155,12 @@ void makeSenL(queryADT q){
         j++;
         q->sensorsP = q->sensorsP->tail;
     }*/
+
+    while(q->defective != NULL){
+        int j = 0;
+        printf("%s\n", q->sensorsID[q->defective[j].ID-1].name);
+        j++;
+    }
 }
 
 static void freeRecYears(TYear * years){
@@ -149,12 +180,21 @@ static void freeRecSen(TNodeS * l){
     free(l);
 }
 
+static void freeRecDef(Tdefective * l){
+    if(l==NULL){
+        return;
+    }
+    freeRecDef(l->tail);
+    free(l);
+}
+
 void freeQuery(queryADT q) {
     for (int j=0; j<86; j++){
         free(q->sensorsID[j].name);
     }
     freeRecYears(q->years);
     freeRecSen(q->sensorsP); 
+    freeRecDef(q->defective);
     free(q->sensorsID);
     free(q);    
 }

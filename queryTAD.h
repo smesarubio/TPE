@@ -59,6 +59,7 @@ void freeQuery(queryADT q);
 
 //TNodeS * sortSensorL(TNodeS * l, TNodeS * aux, TSensor * vecSen, size_t i);
 
+
 void makeSenL(queryADT q);
 
 #endif

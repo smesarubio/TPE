@@ -9,6 +9,8 @@ size_t dayToNum(char * s);
 TYear * createYearL (FILE * fReadings, queryADT query, TSensor * vec);
 TSensor * createSensorV(FILE * fSensor);
 
+
+
 int main(int argc, char *argv[]){
     FILE * fSensor = fopen(argv[1], "rt");        
     FILE * fReadings = fopen(argv[2], "rt");
@@ -16,9 +18,9 @@ int main(int argc, char *argv[]){
         perror("Unable to open file.");
         exit(1);
     }       
-    //size_t yearFrom = atoi(argv[3]);
-    //size_t yearTo = atoi(argv[4]);
-    queryADT query = newQuery(); 
+    size_t yearFrom = atoi(argv[3]);
+    size_t yearTo = atoi(argv[4]);
+    queryADT query = newQuery(yearFrom, yearTo); 
     TSensor * vectorS = createSensorV(fSensor);
     insertVector(query, vectorS);
     TYear * years = createYearL(fReadings, query, vectorS);
