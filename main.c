@@ -1,11 +1,12 @@
 
 #include "queryTAD.h"
 #define LINES 150
+#define ESNULL(x) ((x)==NULL ? 0:1)
 
 //enum month{January = 1, February, March, April, May, June, July, August, September, October, November, December};
 
 size_t dayToNum(char * s);
-TYear * createYearL (FILE * fReadings, queryADT query);
+TYear * createYearL (FILE * fReadings, queryADT query, TSensor * vec);
 TSensor * createSensorV(FILE * fSensor);
 
 int main(int argc, char *argv[]){
@@ -15,13 +16,32 @@ int main(int argc, char *argv[]){
         perror("Unable to open file.");
         exit(1);
     }       
-    size_t yearFrom = atoi(argv[3]);
-    size_t yearTo = atoi(argv[4]);
-    queryADT query = newQuery(yearFrom, yearTo); 
+    //size_t yearFrom = atoi(argv[3]);
+    //size_t yearTo = atoi(argv[4]);
+    queryADT query = newQuery(); 
     TSensor * vectorS = createSensorV(fSensor);
     insertVector(query, vectorS);
-    TYear * years = createYearL(fReadings, query);
+    TYear * years = createYearL(fReadings, query, vectorS);
     insertYearL(query, years);
+    /*for (int i=0; i<MAX; i++){
+        printf("ID: %d\t", i+1);
+        printf("TOTAL: %li\t", vectorS[i].total);
+        printf("FLAG: %c\t", vectorS[i].flag);
+        printf("NAME: %s\n", vectorS[i].name);
+        printf("OLDEST M: %li\t", ans[i].oldest.month);
+        printf("OLDEST D: %li\t", ans[i].oldest.dayN);
+        printf("OLDEST T: %li\t", ans[i].oldest.time);
+        printf("OLDEST C: %li\n", ans[i].oldest.old_count);
+        
+    }
+    while (years != NULL){
+        printf("YEAR: %li\t", years->year);
+        printf("WEEK: %li\t", years->Dweek);
+        printf("WEEKEND: %li\t", years->Dweekend);
+        printf("TOTAL: %li\n", years->total);
+        years = years->tail;
+    }
+    */
     makeSenL(query);
     freeQuery(query);
     fclose(fReadings);
@@ -43,20 +63,24 @@ TSensor * createSensorV(FILE * fSensor){
             while (value != NULL){
                 size_t pos = atoi(value);
                 value = strtok(NULL, ";");
-                ans[pos - 1].len = strlen(value);
-                ans[pos - 1].name = malloc(ans[pos - 1].len + 1);
-                if (ans[pos - 1].name == NULL) {
-                    perror("Unable to allocate memory.");
-                    exit(1);
+                if (value != NULL){
+                    ans[pos - 1].len = strlen(value);
+                    ans[pos - 1].name = malloc(ans[pos - 1].len + 1);
+                    if (ans[pos - 1].name == NULL) {
+                        perror("Unable to allocate memory.");
+                        exit(1);
+                    }
+                    strcpy(ans[pos - 1].name, value);
                 }
-                strcpy(ans[pos - 1].name, value);
-                ans[pos-1].oldest.used = 0;
                 value = strtok(NULL, ";");
-                ans[pos - 1].flag = *value; 
+                if (value != NULL){
+                    ans[pos - 1].flag = *value; 
+                }
                 value = strtok(NULL, ";");
             }
         }
     }
+       
     return ans;
 }
 
@@ -79,7 +103,7 @@ TYear * addRec(TYear * years, TYear * ans){
     return years;
 }
 
-TYear * createYearL (FILE * fReadings, queryADT query){
+TYear * createYearL (FILE * fReadings, queryADT query, TSensor * vec){
     TYear * list = NULL;
     char line2[LINES];
     fgets(line2, LINES, fReadings);
@@ -87,30 +111,55 @@ TYear * createYearL (FILE * fReadings, queryADT query){
         for (int i = 0; fgets(line2, LINES, fReadings); i++){
             char * value = strtok(line2, ";");//YEAR
             while (value != NULL){
-                size_t month, dayN, ID, count, time, day, year;
-                TYear * years = malloc(sizeof(TYear));
-                year = atoi(value);
-                years->year = year;
+                size_t month, dayN, ID, count, time, day, year, flag = 1;
+                TYear * years = calloc(1, sizeof(TYear));
+                if (value != NULL){
+                    year = atoi(value);
+                    years->year = year;
+                }else {
+                    flag = 0;
+                }
                 value = strtok(NULL, ";");//MONTH
                 month = monthToNum(value);
                 value = strtok(NULL, ";"); //DAYN
-                dayN = atoi(value);
+                if (value != NULL){
+                    dayN = atoi(value);
+                }else {
+                    flag = 0;
+                }
                 value = strtok(NULL, ";");//DAY
                 day = dayToNum(value);
                 value = strtok(NULL, ";"); //ID
-                ID = atoi(value);
-                value = strtok(NULL, ";"); //TIME 
-                time = atoi(value);
-                value = strtok(NULL, ";"); //COUNTS 
-                count = atoi(value);
-                if(day){
-                    years->Dweekend += count;
-                } else{
-                    years->Dweek += count;
+                if (value != NULL){
+                    ID = atoi(value);
+                }else {
+                    flag = 0;
                 }
-                years->total += count;
+                value = strtok(NULL, ";"); //TIME 
+                if (value != NULL){
+                    time = atoi(value);
+                }else {
+                    flag = 0;
+                }
+                value = strtok(NULL, ";"); //COUNTS 
+                if (value != NULL){
+                    count = atoi(value);
+                        if (count != 0){
+                            if (vec[ID - 1].name != NULL && vec[ID - 1].flag == 'A'){
+                                years->total += count;
+                                vec[ID - 1].total += count;
+                            if(day){
+                                years->Dweekend += count;
+                            } else{
+                                years->Dweek += count;
+                            }
+                            if (flag){
+                                addOldest(query, ID, month, dayN, time, count, year);
+                            }
+                        }
+                    }
+                }
                 list = addRec(list, years);
-                addOldest(query, ID, month, dayN, time, count, year);
                 value = strtok(NULL, ";"); //siguiente
                 //free(years); 
             }
