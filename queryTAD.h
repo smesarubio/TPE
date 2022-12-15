@@ -59,5 +59,14 @@ void freeQuery(queryADT q);
 
 void makeSenL(queryADT q);
 
-#endif
+void q1(queryADT q, FILE * csvQuery, htmlTable tableQuery );
 
+void q2(queryADT q, FILE * csvQuery, htmlTable tableQuery );
+
+void q3(queryADT q, FILE * csvQuery, htmlTable tableQuery );
+
+void q4(queryADT q, FILE * csvQuery, htmlTable tableQuery );
+
+void q5(queryADT q, FILE * csvQuery, htmlTable tableQuery );
+
+#endif

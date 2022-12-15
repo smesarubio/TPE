@@ -54,3 +54,8 @@ dkms.conf
 *.csv
 readings.csv:Zone.Identifier
 sensors.csv:Zone.Identifier
+query1.html
+query2.html
+query3.html
+query4.html
+query5.html

@@ -1,4 +1,4 @@
-
+#include "htmlTable.h"
 #include "queryTAD.h"
 #define LINES 150
 #define ESNULL(x) ((x)==NULL ? 0:1)
@@ -8,7 +8,11 @@
 size_t dayToNum(char * s);
 TYear * createYearL (FILE * fReadings, queryADT query, TSensor * vec);
 TSensor * createSensorV(FILE * fSensor);
-
+void query1(queryADT q);
+void query2(queryADT q);
+void query3(queryADT q);
+void query4(queryADT q);
+void query5(queryADT q);
 
 
 int main(int argc, char *argv[]){
@@ -43,13 +47,71 @@ int main(int argc, char *argv[]){
         printf("TOTAL: %li\n", years->total);
         years = years->tail;
     }
-    
     */
+    query1(query);
+    query2(query);
+    query3(query);
+    query4(query);
+    query5(query);
+
+    // query5(query);
+
     freeQuery(query);
     fclose(fReadings);
     fclose(fSensor);
     return 0;
 }
+
+void query1(queryADT q){
+    FILE * query = fopen("query1.csv", "wt");
+    htmlTable table = newTable("query1.html", 2, "Sensor", "Pedestrians");
+    fprintf(query, "Sensor; Pedestrians\n");
+    q1(q, query, table);
+    fclose(query);
+    closeHTMLTable(table);
+    return;
+}
+
+void query2(queryADT q){
+    FILE * query = fopen("query2.csv", "wt");
+    htmlTable table = newTable("query2.html", 4, "Year", "Weekdays", "Weekend", "Total");
+    fprintf(query, "Year; Weekdays; Weekend; Total\n");
+    q2(q, query, table);
+    fclose(query);
+    closeHTMLTable(table);
+    return;
+}
+
+void query3(queryADT q){
+    FILE * query = fopen("query3.csv", "wt");
+    htmlTable table = newTable("query3.html", 2, "Year", "Pedestrian Avg");
+    fprintf(query, "Year; Pedestrian Avg\n");
+    q3(q, query, table);
+    fclose(query);
+    closeHTMLTable(table);
+    return;
+}
+
+void query4(queryADT q){
+    FILE * query = fopen("query4.csv", "wt");
+    htmlTable table = newTable("query4.html", 1, "Sensor");
+    fprintf(query, "Sensor\n");
+    q4(q, query, table);
+    fclose(query);
+    closeHTMLTable(table);
+    return;
+}
+
+void query5(queryADT q){
+    FILE * query = fopen("query5.csv", "wt");
+    htmlTable table = newTable("query5.html", 4, "Oldest Date", "Oldest Hour", "Sensor", "Oldest Count" );
+    fprintf(query, "Oldest Date; Oldest Hour; Sensor; Oldest Count\n");
+    q5(q, query, table);
+    fclose(query);
+    closeHTMLTable(table);
+    return;
+}
+
 
 TSensor * createSensorV(FILE * fSensor){
     TSensor * ans = calloc(MAX, sizeof(TSensor));

@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "htmlTable.h"
 #include "queryTAD.h"
+#define MAX_CHARS 15
 
 typedef struct defective{
     size_t ID;
@@ -226,15 +228,95 @@ void makeSenL(queryADT q){
     /*********************************/
     TSOld * aux = q->sortedOld;
     while(aux != NULL){
-        printf("%s\t", q->sensorsID[ aux->ID-1].name);
-        printf("%ld/", q->oldest[ aux->ID-1].dayN);
-        printf("%ld/", q->oldest[ aux->ID-1].month);
-        printf("%ld\t", q->oldest[aux->ID-1].year);
-        printf("TIME: %ld\t", q->oldest[aux->ID-1].time);
-        printf("COUNT: %ld\n", q->oldest[aux->ID-1].old_count);
+        // printf("%s\t", q->sensorsID[ aux->ID-1].name);
+        // printf("%ld/", q->oldest[ aux->ID-1].dayN);
+        // printf("%ld/", q->oldest[ aux->ID-1].month);
+        // printf("%ld\t", q->oldest[aux->ID-1].year);
+        // printf("TIME: %ld\t", q->oldest[aux->ID-1].time);
+        // printf("COUNT: %ld\n", q->oldest[aux->ID-1].old_count);
         aux = aux->tail;
     }
 }
+
+
+void q1(queryADT q, FILE * csvQuery, htmlTable tableQuery ){
+    TNodeS * aux = q->sensorsP;
+    while(aux != NULL){
+        fprintf(csvQuery, "%s; %li\n", q->sensorsID[aux->ID-1].name,q->sensorsID[aux->ID-1].total);
+        char c[MAX_CHARS];
+        sprintf(c, "%li", q->sensorsID[aux->ID-1].total);
+        addHTMLRow(tableQuery, q->sensorsID[aux->ID-1].name, c );
+        aux = aux->tail;
+    }
+    return;
+}
+
+void q2(queryADT q, FILE * csvQuery, htmlTable tableQuery ){
+    TYear * aux = q->years;
+    while(aux != NULL){
+        fprintf(csvQuery, "%li; %li; %li; %li\n",aux->year,aux->Dweek,aux->Dweekend,aux->total);
+        char a[MAX_CHARS],b[MAX_CHARS],c[MAX_CHARS],d[MAX_CHARS];
+        sprintf(a, "%li",aux->year);
+        sprintf(b, "%li",aux->Dweek);
+        sprintf(c, "%li",aux->Dweekend);
+        sprintf(d, "%li",aux->total);
+        addHTMLRow(tableQuery, a,b,c,d);
+        aux = aux->tail;
+    }
+    return;
+}
+
+void q3(queryADT q, FILE * csvQuery, htmlTable tableQuery ){
+    TYear *aux = q->years;
+    while (aux != NULL) {
+        if ((aux->year) % 4 == 0) {
+        float i = (float)aux->total / 366.0;
+        fprintf(csvQuery, "%li; %.2f\n", aux->year, i);
+        char y[MAX], a[MAX];
+        sprintf(y, "%li", aux->year);
+        sprintf(a, "%.2f", i);
+        addHTMLRow(tableQuery, y, a);
+        } else {
+        float j = (float)aux->total / 365.0;
+        fprintf(csvQuery, "%li; %.2f\n", aux->year, j);
+        char y2[MAX], a2[MAX];
+        sprintf(y2, "%li", aux->year);
+        sprintf(a2, "%.2f", j);
+        addHTMLRow(tableQuery, y2, a2);
+        }
+        aux = aux->tail;
+    }
+}
+
+void q4(queryADT q, FILE * csvQuery, htmlTable tableQuery ){
+    Tdefective * aux = q->defective;
+    while(aux != NULL){
+        fprintf(csvQuery, "%s\n", q->sensorsID[aux->ID-1].name);
+        addHTMLRow(tableQuery, q->sensorsID[aux->ID-1].name);
+        aux = aux->tail;
+    }
+    return;
+}
+
+void q5(queryADT q, FILE * csvQuery, htmlTable tableQuery ){
+    TSOld * aux = q->sortedOld;
+    while(aux != NULL){
+        char a[MAX_CHARS],b[MAX_CHARS],c[MAX_CHARS];
+        sprintf(a, "%li/%li/%li",q->oldest[aux->ID-1].dayN,q->oldest[aux->ID-1].month, q->oldest[aux->ID-1].year);
+        sprintf(b, "%li",q->oldest[aux->ID-1].time);
+        sprintf(c, "%li",q->oldest[aux->ID-1].old_count);
+        fprintf(csvQuery, "%s; %s; %s; %s\n",a,q->sensorsID[aux->ID-1].name,b,c);
+        addHTMLRow(tableQuery, a,q->sensorsID[aux->ID-1].name,b,c);
+        aux = aux->tail;
+    }
+    return;
+}
+
+
+
+
+
+
 
 static void freeRecYears(TYear * years){
     if(years == NULL){
