@@ -25,7 +25,6 @@ typedef struct sensor {
     size_t len;
     char flag;
     char defective;
-    oldestM oldest;
 }TSensor;
 
 typedef struct Nsensor{

@@ -59,19 +59,20 @@ size_t monthToNum (char * s){
     return -1;
 }
 
-static char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size_t month2, size_t day2, char * usedFlag,size_t time1 , size_t time2){
-    /*if (year1 == NULL || year2 == NULL || month1 == NULL || month2 == NULL || day1 == NULL || day2 == NULL){
+/*static char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size_t month2, size_t day2, char * usedFlag,size_t time1 , size_t time2){
+    if (year1 == NULL || year2 == NULL || month1 == NULL || month2 == NULL || day1 == NULL || day2 == NULL){
         return -1;
-    }*/
+    }
     if(*usedFlag==0){
         *usedFlag = 1;
         return -1;
     }
+    if(year1==year2 && month1 == month2 && day1==day2 &&  time1 == time2){
+        return 0; // mismo día
+    } 
+    if(year1 == year2 && month1 == month2)
     if (year1 < year2){
         return 1;
-    }
-    if(month1 == month2 && day1==day2 && year1==year2 && time1 == time2){
-        return 0; // mismo día
     }
     if (month1 < month2){
         return 1; // día uno antes que día dos.
@@ -83,8 +84,58 @@ static char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size
         return day1 < day2;
     }
     return -1; // día dos antes que día uno.
+}*/
+static char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size_t month2, size_t day2, char * usedFlag,size_t time1 , size_t time2){
+    if(*usedFlag==0){
+        *usedFlag = 1;
+        return -1;
+    }
+    
+    if (year1 < year2)
+        return 1;
+        else if (year1 > year2)
+        return -1;
+
+        if (year1 == year2)
+        {
+            if (month1<month2)
+                return 1;
+            else if (month1 > month2)
+                return -1;
+            else if (day1<day2)
+                return 1;
+            else if(day1>day2)
+                return -1;
+            else if(time1 < time2)
+                return 1;
+            else if(time1 > time2)
+                return -1;
+            else 
+                return 0;
+        }
+    return 0;
 }
 
+static TSOld * sortOldByDate(oldestM * old,TSOld * list, int index, TSensor * vec){
+    char c;
+    if(vec[index].flag == 'R' || old[index].used == 0){
+        return list;
+    }
+    if(list == NULL || (c = dateCmp(old[list->ID-1].year, old[index].year, old[list->ID-1].month ,old[list->ID-1].dayN , old[index].month,old[index].dayN,&(old->used),old[list->ID-1].time, old[index].time))==-1){
+        TSOld * new = malloc(sizeof(TSOld));
+        new->ID = index+1;
+        new->tail = list;
+        return new;
+    }
+    if(c==0 && strcasecmp(vec[(list->ID)-1].name, vec[index].name)>0){
+        TSOld * new = malloc(sizeof(TSOld));
+        new->ID = index+1;
+        new->tail = list;
+        return new;
+    }
+    list->tail = sortOldByDate(old, list->tail,index, vec);
+    return list;
+}
 void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians, size_t year){
     if (q->sensorsID[ID - 1].name == NULL){
         return;
@@ -104,7 +155,6 @@ void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, si
         printf("peds: %10lu|\n", q->oldest[ID-1].old_count);
     */
     }
-    //si c = 1 o c = 0, no cambia el oldest.
     if(year>q->yearFrom && year < q->yearTo){
         q->sensorsID[ID-1].defective = 1; 
     }
@@ -133,23 +183,6 @@ static TNodeS * sortSensorL(TNodeS * l, size_t pedestrians, TSensor * vecSen, si
     return l;
 }
 
-static TSOld * sortOldByDate(oldestM * old,TSOld * list, int index, TSensor * vec){
-    char c;
-    if(list == NULL || (c = dateCmp(old[list->ID-1].year, old[index].year, old[list->ID-1].month ,old[list->ID-1].dayN , old[index].month,old[index].dayN,&(old->used),old[list->ID-1].time, old[index].time))==-1){
-        TSOld * new = malloc(sizeof(TSOld));
-        new->ID = index+1;
-        new->tail = list;
-        return new;
-    }
-    if(c==0 && strcasecmp(vec[(list->ID)-1].name, vec[index].name)>0){
-        TSOld * new = malloc(sizeof(TSOld));
-        new->ID = index+1;
-        new->tail = list;
-        return new;
-    }
-    list->tail = sortOldByDate(old, list->tail,index, vec);
-    return list;
-}
 
 
 static Tdefective * sortDefectiveL(Tdefective * def, size_t i, TSensor * vec){
@@ -191,15 +224,15 @@ void makeSenL(queryADT q){
     /*********************************/
     /*IMPRIME LA LISTA DE DEFECTUOSOS*/
     /*********************************/
-    //TSOld * aux = q->sortedOld;
-    while(q->sortedOld != NULL){
-        printf("%s\t", q->sensorsID[ q->sortedOld->ID-1].name);
-        printf("%ld/", q->sensorsID[ q->sortedOld->ID-1].oldest.dayN);
-        printf("%ld/", q->sensorsID[ q->sortedOld->ID-1].oldest.month);
-        printf("%ld\t", q->sensorsID[q->sortedOld->ID-1].oldest.year);
-        printf("TIME: %ld\t", q->sensorsID[q->sortedOld->ID-1].oldest.time);
-        printf("COUNT: %ld\n", q->sensorsID[q->sortedOld->ID-1].oldest.old_count);
-        q->sortedOld = q->sortedOld->tail;
+    TSOld * aux = q->sortedOld;
+    while(aux != NULL){
+        printf("%s\t", q->sensorsID[ aux->ID-1].name);
+        printf("%ld/", q->oldest[ aux->ID-1].dayN);
+        printf("%ld/", q->oldest[ aux->ID-1].month);
+        printf("%ld\t", q->oldest[aux->ID-1].year);
+        printf("TIME: %ld\t", q->oldest[aux->ID-1].time);
+        printf("COUNT: %ld\n", q->oldest[aux->ID-1].old_count);
+        aux = aux->tail;
     }
 }
 
