@@ -85,14 +85,12 @@ void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, si
         q->oldest[ID-1].dayN = dayN;
         q->oldest[ID-1].month = month;
         q->oldest[ID-1].time = time;
-        printf("peds: %10lu|\t", q->oldest[ID-1].old_count);
-        printf("dayN: %10lu|\t", q->oldest[ID-1].dayN);
+        printf("%10lu/", q->oldest[ID-1].dayN);
+        printf("%lu/", q->oldest[ID-1].month);
+        printf("%lu|\t", q->oldest[ID-1].year);
         printf("time: %10lu|\t", q->oldest[ID-1].time);
-        printf("year: %10lu|\t", q->oldest[ID-1].year);
-        printf("month: %lu\n", q->oldest[ID-1].month);
+        printf("peds: %10lu|\n", q->oldest[ID-1].old_count);
     }
-
-    
     //si c = 1 o c = 0, no cambia el oldest.
 }
 
