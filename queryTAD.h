@@ -25,6 +25,7 @@ typedef struct sensor {
     size_t len;
     char flag;
     char defective;
+    oldestM oldest;
 }TSensor;
 
 typedef struct Nsensor{
@@ -51,15 +52,15 @@ size_t monthToNum (char * s);
 
 void insertYearL(queryADT query, TYear * years);
 
-queryADT newQuery();
+queryADT newQuery(size_t yearFrom, size_t yearTo);
     
 void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians, size_t year);
 
 void freeQuery(queryADT q);
 
-//TNodeS * sortSensorL(TNodeS * l, TNodeS * aux, TSensor * vecSen, size_t i);
-
+// TNodeS * makeSenLRec(TNodeS * l, TNodeS * aux, TSensor * vecSen, size_t i);
 
 void makeSenL(queryADT q);
 
 #endif
+
