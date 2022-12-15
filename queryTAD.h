@@ -58,8 +58,6 @@ void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, si
 
 void freeQuery(queryADT q);
 
-// TNodeS * makeSenLRec(TNodeS * l, TNodeS * aux, TSensor * vecSen, size_t i);
-
 void makeSenL(queryADT q);
 
 #endif

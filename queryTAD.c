@@ -101,7 +101,8 @@ void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, si
         printf("%lu/", q->oldest[ID-1].month);
         printf("%lu|\t", q->oldest[ID-1].year);
         printf("time: %10lu|\t", q->oldest[ID-1].time);
-        printf("peds: %10lu|\n", q->oldest[ID-1].old_count);*/
+        printf("peds: %10lu|\n", q->oldest[ID-1].old_count);
+    */
     }
     //si c = 1 o c = 0, no cambia el oldest.
     if(year>q->yearFrom && year < q->yearTo){
@@ -132,10 +133,7 @@ static TNodeS * sortSensorL(TNodeS * l, size_t pedestrians, TSensor * vecSen, si
     return l;
 }
 
-
-
 static TSOld * sortOldByDate(oldestM * old,TSOld * list, int index, TSensor * vec){
-
     char c;
     if(list == NULL || (c = dateCmp(old[list->ID-1].year, old[index].year, old[list->ID-1].month ,old[list->ID-1].dayN , old[index].month,old[index].dayN,&(old->used),old[list->ID-1].time, old[index].time))==-1){
         TSOld * new = malloc(sizeof(TSOld));
@@ -168,7 +166,6 @@ static Tdefective * sortDefectiveL(Tdefective * def, size_t i, TSensor * vec){
     return def;
 }
 
-
 void makeSenL(queryADT q){
     for(int i = 0; i < MAX; i++){
         q->sensorsP = sortSensorL(q->sensorsP, q->sensorsID[i].total, q->sensorsID, i);
@@ -179,7 +176,7 @@ void makeSenL(queryADT q){
 
     for(int i=0; i<MAX;i++){
         if (q->sensorsID[i].name != NULL){
-            sortOldByDate(q->oldest,q->sortedOld,i, q->sensorsID);
+            q->sortedOld = sortOldByDate(q->oldest,q->sortedOld, i, q->sensorsID);
         }
     }
 
@@ -194,11 +191,15 @@ void makeSenL(queryADT q){
     /*********************************/
     /*IMPRIME LA LISTA DE DEFECTUOSOS*/
     /*********************************/
-    TSOld * aux = q->sortedOld;
-    while(aux != NULL){
-        printf("%s\t", q->sensorsID[aux->ID-1].name);
-        printf("%10ld\n", q->sensorsID[aux->ID-1].total);
-        aux = aux->tail;
+    //TSOld * aux = q->sortedOld;
+    while(q->sortedOld != NULL){
+        printf("%s\t", q->sensorsID[ q->sortedOld->ID-1].name);
+        printf("%ld/", q->sensorsID[ q->sortedOld->ID-1].oldest.dayN);
+        printf("%ld/", q->sensorsID[ q->sortedOld->ID-1].oldest.month);
+        printf("%ld\t", q->sensorsID[q->sortedOld->ID-1].oldest.year);
+        printf("TIME: %ld\t", q->sensorsID[q->sortedOld->ID-1].oldest.time);
+        printf("COUNT: %ld\n", q->sensorsID[q->sortedOld->ID-1].oldest.old_count);
+        q->sortedOld = q->sortedOld->tail;
     }
 }
 

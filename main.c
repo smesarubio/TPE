@@ -25,6 +25,7 @@ int main(int argc, char *argv[]){
     insertVector(query, vectorS);
     TYear * years = createYearL(fReadings, query, vectorS);
     insertYearL(query, years);
+    makeSenL(query);
     /*for (int i=0; i<MAX; i++){
         printf("ID: %d\t", i+1);
         printf("TOTAL: %li\t", vectorS[i].total);
@@ -34,7 +35,6 @@ int main(int argc, char *argv[]){
         printf("OLDEST D: %li\t", ans[i].oldest.dayN);
         printf("OLDEST T: %li\t", ans[i].oldest.time);
         printf("OLDEST C: %li\n", ans[i].oldest.old_count);
-        
     }
     while (years != NULL){
         printf("YEAR: %li\t", years->year);
@@ -43,8 +43,8 @@ int main(int argc, char *argv[]){
         printf("TOTAL: %li\n", years->total);
         years = years->tail;
     }
+    
     */
-    makeSenL(query);
     freeQuery(query);
     fclose(fReadings);
     fclose(fSensor);
@@ -146,18 +146,16 @@ TYear * createYearL (FILE * fReadings, queryADT query, TSensor * vec){
                 value = strtok(NULL, ";"); //COUNTS 
                 if (value != NULL){
                     count = atoi(value);
-                        if (count != 0){
-                            if (vec[ID - 1].name != NULL && vec[ID - 1].flag == 'A'){
-                                years->total += count;
-                                vec[ID - 1].total += count;
-                            if(day){
-                                years->Dweekend += count;
-                            } else{
-                                years->Dweek += count;
-                            }
-                            if (flag){
-                                addOldest(query, ID, month, dayN, time, count, year);
-                            }
+                    if (vec[ID - 1].name != NULL && vec[ID - 1].flag == 'A'){
+                        years->total += count;
+                        vec[ID - 1].total += count;
+                        if(day){
+                            years->Dweekend += count;
+                        } else{
+                            years->Dweek += count;
+                        }
+                        if (flag){
+                            addOldest(query, ID, month, dayN, time, count, year);
                         }
                     }
                 }
