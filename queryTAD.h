@@ -10,13 +10,17 @@
 #include <strings.h>
 #define MAX 86
 
-typedef struct oldestM{
-    size_t year;
-    char used;
-    size_t time;
-    size_t old_count;
+typedef struct date{
+    size_t day;
     size_t month;
-    size_t dayN; //day as a number
+    size_t year;
+    size_t time;
+}Tdate;
+
+typedef struct oldestM{
+    Tdate date;
+    char used;
+    size_t old_count;
 }oldestM;
 
 typedef struct sensor {
@@ -45,15 +49,17 @@ typedef struct queryCDT * queryADT;
 
 void insertVector(queryADT q, TSensor * vec);
 
+//returns 1 for weekend or 0 for weekday
 size_t dayToNum(char * s);
 
+//returns month number 
 size_t monthToNum (char * s);
 
 void insertYearL(queryADT query, TYear * years);
 
 queryADT newQuery(size_t yearFrom, size_t yearTo);
     
-void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians, size_t year);
+void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians);
 
 void freeQuery(queryADT q);
 

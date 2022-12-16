@@ -40,18 +40,11 @@ void insertVector(queryADT q, TSensor * vec){
     q->sensorsID = vec;
 }
 
-//returns 1 for weekend or 0 for weekday
-size_t dayToNum(char * s){    
-    if (s == NULL){
-        return 0;
-    }           
-    return s[0] == 'S' || s[0] == 's'; 
+size_t dayToNum(char * s){            
+    return (s[0] == 'S' || s[0] == 's') ? 1:0; 
 }
 
 size_t monthToNum (char * s){
-    if (s == NULL){
-        return 0;
-    }
     char *months[] = {"January", "February", "March", "April","May", "June", "July", "August", "September", "October", "November", "December"};
     for (int i=0; i<12; i++){
         if (strcasecmp(s, months[i]) == 0){
@@ -61,56 +54,29 @@ size_t monthToNum (char * s){
     return -1;
 }
 
-/*static char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size_t month2, size_t day2, char * usedFlag,size_t time1 , size_t time2){
-    if (year1 == NULL || year2 == NULL || month1 == NULL || month2 == NULL || day1 == NULL || day2 == NULL){
-        return -1;
-    }
+static char dateCmp(Tdate date1, Tdate date2, char * usedFlag){
     if(*usedFlag==0){
         *usedFlag = 1;
         return -1;
     }
-    if(year1==year2 && month1 == month2 && day1==day2 &&  time1 == time2){
-        return 0; // mismo día
-    } 
-    if(year1 == year2 && month1 == month2)
-    if (year1 < year2){
+    if (date1.year < date2.year)
         return 1;
-    }
-    if (month1 < month2){
-        return 1; // día uno antes que día dos.
-    }
-    if(month1 == month2 && day1 == day2){
-        return time1<time2;
-    }
-    if (month1 == month2 ){
-        return day1 < day2;
-    }
-    return -1; // día dos antes que día uno.
-}*/
-static char dateCmp(size_t year1, size_t year2, size_t month1, size_t day1, size_t month2, size_t day2, char * usedFlag,size_t time1 , size_t time2){
-    if(*usedFlag==0){
-        *usedFlag = 1;
-        return -1;
-    }
-    
-    if (year1 < year2)
-        return 1;
-        else if (year1 > year2)
+        else if (date1.year > date2.year)
         return -1;
 
-        if (year1 == year2)
+        if (date1.year == date2.year)
         {
-            if (month1<month2)
+            if (date1.month<date2.month)
                 return 1;
-            else if (month1 > month2)
+            else if (date1.month > date2.month)
                 return -1;
-            else if (day1<day2)
+            else if (date1.day < date2.day)
                 return 1;
-            else if(day1>day2)
+            else if(date1.day > date2.day)
                 return -1;
-            else if(time1 < time2)
+            else if(date1.time < date2.time)
                 return 1;
-            else if(time1 > time2)
+            else if(date1.time > date2.time)
                 return -1;
             else 
                 return 0;
@@ -123,7 +89,7 @@ static TSOld * sortOldByDate(oldestM * old,TSOld * list, int index, TSensor * ve
     if(vec[index].flag == 'R' || old[index].used == 0){
         return list;
     }
-    if(list == NULL || (c = dateCmp(old[list->ID-1].year, old[index].year, old[list->ID-1].month ,old[list->ID-1].dayN , old[index].month,old[index].dayN,&(old->used),old[list->ID-1].time, old[index].time))==-1){
+    if(list == NULL || (c = dateCmp(old[list->ID-1].date, old[index].date, &(old->used))) == -1){
         TSOld * new = malloc(sizeof(TSOld));
         new->ID = index+1;
         new->tail = list;
@@ -138,26 +104,16 @@ static TSOld * sortOldByDate(oldestM * old,TSOld * list, int index, TSensor * ve
     list->tail = sortOldByDate(old, list->tail,index, vec);
     return list;
 }
-void addOldest(queryADT q, size_t ID, size_t month, size_t dayN, size_t time, size_t pedestrians, size_t year){
-    if (q->sensorsID[ID - 1].name == NULL){
-        return;
-    }
-    int c = dateCmp(q->oldest[ID-1].year, year,q->oldest[ID-1].month, month, q->oldest[ID-1].dayN, dayN, &(q->oldest[ID-1].used),q->oldest[ID-1].time, time);
-    // printf("%i\n", c);
+void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians){
+    int c = dateCmp(q->oldest[ID-1].date, date, &(q->oldest[ID-1].used));
     if(c==-1){
-        q->oldest[ID-1].year = year;
+        q->oldest[ID-1].date.year = date.year;
         q->oldest[ID-1].old_count = pedestrians;
-        q->oldest[ID-1].dayN = dayN;
-        q->oldest[ID-1].month = month;
-        q->oldest[ID-1].time = time;
-        /*printf("%10lu/", q->oldest[ID-1].dayN);
-        printf("%lu/", q->oldest[ID-1].month);
-        printf("%lu|\t", q->oldest[ID-1].year);
-        printf("time: %10lu|\t", q->oldest[ID-1].time);
-        printf("peds: %10lu|\n", q->oldest[ID-1].old_count);
-    */
+        q->oldest[ID-1].date.day = date.day;
+        q->oldest[ID-1].date.month = date.month;
+        q->oldest[ID-1].date.time = date.time;
     }
-    if(year>q->yearFrom && year < q->yearTo){
+    if(date.year >= q->yearFrom && date.year <= q->yearTo){
         q->sensorsID[ID-1].defective = 1; 
     }
 }
@@ -167,7 +123,6 @@ void insertYearL(queryADT query, TYear * years){
 }
 
 static TNodeS * sortSensorL(TNodeS * l, size_t pedestrians, TSensor * vecSen, size_t i){
-    // printf("%li\t", i);
     if (vecSen[i].flag != 'A'){
         return l;
     }
@@ -184,8 +139,6 @@ static TNodeS * sortSensorL(TNodeS * l, size_t pedestrians, TSensor * vecSen, si
     }
     return l;
 }
-
-
 
 static Tdefective * sortDefectiveL(Tdefective * def, size_t i, TSensor * vec){
     if((def != NULL && vec[(def->ID)-1].name == NULL) || vec[i].name == NULL){
@@ -214,30 +167,7 @@ void makeSenL(queryADT q){
             q->sortedOld = sortOldByDate(q->oldest,q->sortedOld, i, q->sensorsID);
         }
     }
-
-    //TNodeS * aux = q->sensorsP;
-    /*int j=0;
-    while(q->sensorsP != NULL){
-        printf("NAME:%s\t", q->sensorsID[j].name);
-        printf("TOTAL: %lu\n", q->sensorsP->pedestrians);
-        j++;
-        q->sensorsP = q->sensorsP->tail;
-    }*/
-    /*********************************/
-    /*IMPRIME LA LISTA DE DEFECTUOSOS*/
-    /*********************************/
-    TSOld * aux = q->sortedOld;
-    while(aux != NULL){
-        // printf("%s\t", q->sensorsID[ aux->ID-1].name);
-        // printf("%ld/", q->oldest[ aux->ID-1].dayN);
-        // printf("%ld/", q->oldest[ aux->ID-1].month);
-        // printf("%ld\t", q->oldest[aux->ID-1].year);
-        // printf("TIME: %ld\t", q->oldest[aux->ID-1].time);
-        // printf("COUNT: %ld\n", q->oldest[aux->ID-1].old_count);
-        aux = aux->tail;
-    }
 }
-
 
 void q1(queryADT q, FILE * csvQuery, htmlTable tableQuery ){
     TNodeS * aux = q->sensorsP;
@@ -302,8 +232,8 @@ void q5(queryADT q, FILE * csvQuery, htmlTable tableQuery ){
     TSOld * aux = q->sortedOld;
     while(aux != NULL){
         char a[MAX_CHARS],b[MAX_CHARS],c[MAX_CHARS];
-        sprintf(a, "%li/%li/%li",q->oldest[aux->ID-1].dayN,q->oldest[aux->ID-1].month, q->oldest[aux->ID-1].year);
-        sprintf(b, "%li",q->oldest[aux->ID-1].time);
+        sprintf(a, "%li/%li/%li",q->oldest[aux->ID-1].date.day,q->oldest[aux->ID-1].date.month, q->oldest[aux->ID-1].date.year);
+        sprintf(b, "%li",q->oldest[aux->ID-1].date.time);
         sprintf(c, "%li",q->oldest[aux->ID-1].old_count);
         fprintf(csvQuery, "%s; %s; %s; %s\n",a,q->sensorsID[aux->ID-1].name,b,c);
         addHTMLRow(tableQuery, a,q->sensorsID[aux->ID-1].name,b,c);
@@ -312,12 +242,6 @@ void q5(queryADT q, FILE * csvQuery, htmlTable tableQuery ){
     return;
 }
 
-
-
-
-
-
-
 static void freeRecYears(TYear * years){
     if(years == NULL){
         return;
@@ -325,7 +249,6 @@ static void freeRecYears(TYear * years){
     freeRecYears(years->tail);
     free(years);
 }
-
 
 static void freeRecSen(TNodeS * l){
     if(l==NULL){
