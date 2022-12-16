@@ -54,6 +54,7 @@ size_t monthToNum (char * s){
     return -1;
 }
 
+//returns -1 if date 2 is older than date 1
 static char dateCmp(Tdate date1, Tdate date2, char * usedFlag){
     if(*usedFlag==0){
         *usedFlag = 1;
@@ -66,7 +67,7 @@ static char dateCmp(Tdate date1, Tdate date2, char * usedFlag){
 
         if (date1.year == date2.year)
         {
-            if (date1.month<date2.month)
+            if (date1.month < date2.month)
                 return 1;
             else if (date1.month > date2.month)
                 return -1;
@@ -104,6 +105,7 @@ static TSOld * sortOldByDate(oldestM * old,TSOld * list, int index, TSensor * ve
     list->tail = sortOldByDate(old, list->tail,index, vec);
     return list;
 }
+
 void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians){
     int c = dateCmp(q->oldest[ID-1].date, date, &(q->oldest[ID-1].used));
     if(c==-1){
@@ -232,11 +234,11 @@ void q5(queryADT q, FILE * csvQuery, htmlTable tableQuery ){
     TSOld * aux = q->sortedOld;
     while(aux != NULL){
         char a[MAX_CHARS],b[MAX_CHARS],c[MAX_CHARS];
-        sprintf(a, "%li/%li/%li",q->oldest[aux->ID-1].date.day,q->oldest[aux->ID-1].date.month, q->oldest[aux->ID-1].date.year);
+        sprintf(a, "%li/%li/%li",q->oldest[aux->ID-1].date.day, q->oldest[aux->ID-1].date.month, q->oldest[aux->ID-1].date.year);
         sprintf(b, "%li",q->oldest[aux->ID-1].date.time);
         sprintf(c, "%li",q->oldest[aux->ID-1].old_count);
-        fprintf(csvQuery, "%s; %s; %s; %s\n",a,q->sensorsID[aux->ID-1].name,b,c);
-        addHTMLRow(tableQuery, a,q->sensorsID[aux->ID-1].name,b,c);
+        fprintf(csvQuery, "%s; %li; %s; %li\n",a,q->oldest[aux->ID-1].date.time,q->sensorsID[aux->ID-1].name, q->oldest[aux->ID-1].old_count);
+        addHTMLRow(tableQuery, a,b,q->sensorsID[aux->ID-1].name,c);
         aux = aux->tail;
     }
     return;
