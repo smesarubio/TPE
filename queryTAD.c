@@ -66,6 +66,7 @@ queryADT newQuery(size_t yearFrom, size_t yearTo){
     return q;
 }
 
+//creates a list of sensors sorted by pedestrians.
 static TNodeS * sortSensorL(TNodeS * l, size_t pedestrians, TSensor * vecSen, size_t i){
     if (vecSen[i].flag != 'A'){
         return l;
@@ -84,6 +85,7 @@ static TNodeS * sortSensorL(TNodeS * l, size_t pedestrians, TSensor * vecSen, si
     return l;
 }
 
+//creates a list of defective sensors sorted by name.
 static Tdefective * sortDefectiveL(Tdefective * def, size_t i, TSensor * vec){
     if((def != NULL && vec[(def->ID)-1].name == NULL) || vec[i].name == NULL){
         return def;
@@ -98,7 +100,7 @@ static Tdefective * sortDefectiveL(Tdefective * def, size_t i, TSensor * vec){
     return def;
 }
 
-//returns -1 if date 2 is older than date 1
+//returns -1 if date 2 is after date 1, 1 if date 1 is after date 2 or 0 if they are the same.
 static char dateCmp(Tdate date1, Tdate date2, char * usedFlag){
     if(*usedFlag==0){
         *usedFlag = 1;
@@ -129,6 +131,7 @@ static char dateCmp(Tdate date1, Tdate date2, char * usedFlag){
     return 0;
 }
 
+//creates a list of id's sorted by their oldest count.
 static TSOld * sortOldByDate(oldestM * old,TSOld * list, int index, TSensor * vec){
     char c;
     if(vec[index].flag == 'R' || old[index].used == 0){
@@ -180,6 +183,7 @@ void createSensorV(FILE * fSensor, queryADT q){
     q->sensorsID = ans;
 }
 
+//adds years in order to the year list.
 static TYear * addRec(TYear * years, size_t total, size_t year, size_t day){
     if ( years == NULL || years->year < year){ 
         TYear * new = malloc(sizeof(TYear));
@@ -358,6 +362,7 @@ void q5(queryADT q, FILE * csvQuery, htmlTable tableQuery ){
     return;
 }
 
+//frees years list.
 static void freeRecYears(TYear * years){
     if(years == NULL){
         return;
@@ -366,6 +371,7 @@ static void freeRecYears(TYear * years){
     free(years);
 }
 
+//frees sensors list.
 static void freeRecSen(TNodeS * l){
     if(l==NULL){
         return;
@@ -374,6 +380,7 @@ static void freeRecSen(TNodeS * l){
     free(l);
 }
 
+//free defective list.
 static void freeRecDef(Tdefective * l){
     if(l==NULL){
         return;
@@ -382,6 +389,7 @@ static void freeRecDef(Tdefective * l){
     free(l);
 }
 
+//free oldest list.
 static void freeRecOld(TSOld * l){
     if(l==NULL){
         return;
