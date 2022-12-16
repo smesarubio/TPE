@@ -46,12 +46,12 @@ typedef struct oldestSortedList{
 typedef struct queryCDT{
     size_t yearFrom;
     size_t yearTo; 
-    TYear * years; //lista por año
-    TSensor * sensorsID;  //sensores ordenados por ID
-    TNodeS * sensorsP; //sensores ordenados por peatones
+    TYear * years; //list sorted by year.
+    TSensor * sensorsID;  //sensors sorted by ID.
+    TNodeS * sensorsP; //sensors sorted by pedestrians.
     oldestM oldest[MAX];
-    TSOld * sortedOld;//lista de mediciones viejas ordenadas por fecha
-    Tdefective * defective; //lista de sensores defectuosos
+    TSOld * sortedOld;//oldest counts sorted by date.
+    Tdefective * defective; //defective sensors.
 }queryCDT;
 
 queryADT newQuery(size_t yearFrom, size_t yearTo){
@@ -272,17 +272,12 @@ void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians){
     }
 }
 
-
-
 void makeSenL(queryADT q){
     for(int i = 0; i < MAX; i++){
         q->sensorsP = sortSensorL(q->sensorsP, q->sensorsID[i].total, q->sensorsID, i);
         if(q->sensorsID[i].defective == 0){
             q->defective = sortDefectiveL(q->defective, i, q->sensorsID );
         }
-    }
-
-    for(int i=0; i<MAX;i++){
         if (q->sensorsID[i].name != NULL){
             q->sortedOld = sortOldByDate(q->oldest,q->sortedOld, i, q->sensorsID);
         }
@@ -395,7 +390,7 @@ static void freeRecOld(TSOld * l){
 }
 
 void freeQuery(queryADT q) {
-    for (int j=0; j<86; j++){
+    for (int j=0; j<MAX; j++){
         free(q->sensorsID[j].name);
     }
     freeRecOld(q->sortedOld);
