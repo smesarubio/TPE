@@ -179,27 +179,39 @@ void createSensorV(FILE * fSensor, queryADT q){
     q->sensorsID = ans;
 }
 
-TYear * addRec(TYear * years, TYear * ans){
-    if(ans==NULL){
+static TYear * addRec(TYear * years, size_t total, size_t year, size_t day){
+    if ( years == NULL || years->year < year){ 
+        TYear * new = malloc(sizeof(TYear));
+        if (new == NULL){
+            perror("Unable to allocate memory.");
+            exit(1);
+        }
+        new->year = year;
+        new->total = total;
+        if (day){
+            new->Dweekend = total;
+            new->Dweek = 0;
+        }else {
+            new->Dweek = total;
+            new->Dweekend = 0;
+        }
+        new->tail = years;
+        return new;
+    }
+    if(years->year == year){
+        years->total += total;
+        if (day){
+            years->Dweekend += total;
+        }else {
+            years->Dweek += total;
+        }
         return years;
     }
-    if ( years == NULL || years->year < ans->year){ 
-        ans->tail = years;
-        return ans;
-    }
-    if(years->year == ans->year){
-        years->total += ans->total;
-        years->Dweek += ans->Dweek;
-        years->Dweekend += ans->Dweekend;
-        free(ans);
-        return years;
-    }
-    years->tail = addRec(years->tail, ans); 
+    years->tail = addRec(years->tail, total, year, day); 
     return years;
 }
 
 void createYearL (FILE * fReadings, queryADT query){
-    TYear * list = NULL;
     char line2[LINES];
     fgets(line2, LINES, fReadings);
     while (!feof(fReadings)){
@@ -207,9 +219,7 @@ void createYearL (FILE * fReadings, queryADT query){
             char * value = strtok(line2, ";");//YEAR
             while (value != NULL){
                 size_t month, dayN, ID, count, time, day, year;
-                TYear * years = calloc(1, sizeof(TYear));
                 year = atoi(value);
-                years->year = year;
                 value = strtok(NULL, ";");//MONTH
                 month = monthToNum(value);
                 value = strtok(NULL, ";"); //DAYN
@@ -223,22 +233,15 @@ void createYearL (FILE * fReadings, queryADT query){
                 value = strtok(NULL, ";"); //COUNTS 
                 count = atoi(value);
                 if (query->sensorsID[ID - 1].name != NULL && query->sensorsID[ID - 1].flag == 'A'){
-                    years->total += count;
                     query->sensorsID[ID - 1].total += count;
-                    if(day){
-                        years->Dweekend += count;
-                    } else{
-                        years->Dweek += count;
-                    }
                     Tdate date = {dayN, month, year, time};
                     addOldest(query, ID, date, count);
+                    query->years = addRec(query->years, count, year, day);
                 }
-                list = addRec(list, years);
                 value = strtok(NULL, ";");
             }
         }
     }
-    query->years = list; 
 }
 
 size_t dayToNum(char * s){            
