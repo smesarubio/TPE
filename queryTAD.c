@@ -244,20 +244,6 @@ void createYearL (FILE * fReadings, queryADT query){
     }
 }
 
-size_t dayToNum(char * s){            
-    return (s[0] == 'S' || s[0] == 's') ? 1:0; 
-}
-
-size_t monthToNum (char * s){
-    char *months[] = {"January", "February", "March", "April","May", "June", "July", "August", "September", "October", "November", "December"};
-    for (int i=0; i<12; i++){
-        if (strcasecmp(s, months[i]) == 0){
-            return i+1;
-        }
-    }
-    return -1;
-}
-
 void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians){
     int c = dateCmp(q->oldest[ID-1].date, date, &(q->oldest[ID-1].used));
     if(c==-1){
@@ -282,6 +268,20 @@ void makeSenL(queryADT q){
             q->sortedOld = sortOldByDate(q->oldest,q->sortedOld, i, q->sensorsID);
         }
     }
+}
+
+size_t dayToNum(char * s){            
+    return (s[0] == 'S' || s[0] == 's') ? 1:0; 
+}
+
+size_t monthToNum (char * s){
+    char *months[] = {"January", "February", "March", "April","May", "June", "July", "August", "September", "October", "November", "December"};
+    for (int i=0; i<12; i++){
+        if (strcasecmp(s, months[i]) == 0){
+            return i+1;
+        }
+    }
+    return -1;
 }
 
 void q1(queryADT q, FILE * csvQuery, htmlTable tableQuery ){

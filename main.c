@@ -20,23 +20,25 @@ int main(int argc, char *argv[]){
         perror("Unable to open file.");
         exit(1);
     } 
-
     size_t yearFrom, yearTo;   
     time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
+    struct tm * tm = localtime(&t);
     if (argc == 3){
         yearFrom = 1900; 
-        yearTo = tm.tm_year;
+        yearTo = tm->tm_year + 1900;
     } else if (argc == 4){
         yearFrom = atoi(argv[3]);
-        yearTo = tm.tm_year;
+        if (yearFrom == 0){ //example: atoi("dosmil") returns 0
+            perror("Incorrect parameters.");
+            exit(1);
+        }
+        yearTo = tm->tm_year + 1900;
     } else {
         yearFrom = atoi(argv[3]);
         yearTo = atoi(argv[4]);
-        if (yearTo < yearFrom){
-        perror("Incorrect parameters.");
-        exit(1);
-        //atoi(dosmil) ver como arreglarlo.
+        if (yearTo < yearFrom || yearFrom == 0 || yearTo == 0){ //example: atoi("dosmil") returns 0
+            perror("Incorrect parameters.");
+            exit(1);
         }
     }
 
