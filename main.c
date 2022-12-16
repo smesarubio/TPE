@@ -46,7 +46,6 @@ int main(int argc, char *argv[]){
     createSensorV(fSensor, query);
     createYearL(fReadings, query);
     makeSenL(query);
-    
     query1(query);
     query2(query);
     query3(query);

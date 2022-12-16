@@ -32,7 +32,7 @@ void createYearL (FILE * fReadings, queryADT query);
 void makeSenL(queryADT q);
 
 //adds the oldest count and date for each sensor and checks for defective sensors.     
-void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians);
+void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians, size_t time);
 
 //returns 1 for weekend or 0 for weekday.
 size_t dayToNum(char * s);

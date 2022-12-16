@@ -7,6 +7,7 @@
 
 typedef struct oldestM{
     Tdate date;
+    size_t time;
     char used;
     size_t old_count;
 }oldestM;
@@ -235,7 +236,7 @@ void createYearL (FILE * fReadings, queryADT query){
                 if (query->sensorsID[ID - 1].name != NULL && query->sensorsID[ID - 1].flag == 'A'){
                     query->sensorsID[ID - 1].total += count;
                     Tdate date = {dayN, month, year, time};
-                    addOldest(query, ID, date, count);
+                    addOldest(query, ID, date, count, time);
                     query->years = addRec(query->years, count, year, day);
                 }
                 value = strtok(NULL, ";");
@@ -244,14 +245,14 @@ void createYearL (FILE * fReadings, queryADT query){
     }
 }
 
-void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians){
+void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians, size_t time){
     int c = dateCmp(q->oldest[ID-1].date, date, &(q->oldest[ID-1].used));
     if(c==-1){
         q->oldest[ID-1].date.year = date.year;
         q->oldest[ID-1].old_count = pedestrians;
         q->oldest[ID-1].date.day = date.day;
         q->oldest[ID-1].date.month = date.month;
-        q->oldest[ID-1].date.time = date.time;
+        q->oldest[ID-1].time = time;
     }
     if(date.year >= q->yearFrom && date.year <= q->yearTo){
         q->sensorsID[ID-1].defective = 1; 
@@ -348,9 +349,9 @@ void q5(queryADT q, FILE * csvQuery, htmlTable tableQuery ){
     while(aux != NULL){
         char a[MAX_CHARS],b[MAX_CHARS],c[MAX_CHARS];
         sprintf(a, "%li/%li/%li",q->oldest[aux->ID-1].date.day, q->oldest[aux->ID-1].date.month, q->oldest[aux->ID-1].date.year);
-        sprintf(b, "%li",q->oldest[aux->ID-1].date.time);
+        sprintf(b, "%li",q->oldest[aux->ID-1].time);
         sprintf(c, "%li",q->oldest[aux->ID-1].old_count);
-        fprintf(csvQuery, "%s; %li; %s; %li\n",a,q->oldest[aux->ID-1].date.time,q->sensorsID[aux->ID-1].name, q->oldest[aux->ID-1].old_count);
+        fprintf(csvQuery, "%s; %li; %s; %li\n",a,q->oldest[aux->ID-1].time,q->sensorsID[aux->ID-1].name, q->oldest[aux->ID-1].old_count);
         addHTMLRow(tableQuery, a,b,q->sensorsID[aux->ID-1].name,c);
         aux = aux->tail;
     }
