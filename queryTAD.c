@@ -3,6 +3,35 @@
 #include "htmlTable.h"
 #include "queryTAD.h"
 #define MAX_CHARS 15
+#define LINES 150
+
+typedef struct oldestM{
+    Tdate date;
+    char used;
+    size_t old_count;
+}oldestM;
+
+typedef struct sensor {
+    size_t total;
+    char * name;
+    size_t len;
+    char flag;
+    char defective;
+}TSensor;
+
+typedef struct Nsensor{
+    size_t ID;    
+    size_t pedestrians;
+    struct Nsensor * tail;
+}TNodeS;
+
+typedef struct year {
+    size_t year;
+    size_t total; 
+    size_t Dweek;
+    size_t Dweekend;
+    struct year * tail;
+}TYear;
 
 typedef struct defective{
     size_t ID;
@@ -36,22 +65,36 @@ queryADT newQuery(size_t yearFrom, size_t yearTo){
     return q;
 }
 
-void insertVector(queryADT q, TSensor * vec){
-    q->sensorsID = vec;
-}
-
-size_t dayToNum(char * s){            
-    return (s[0] == 'S' || s[0] == 's') ? 1:0; 
-}
-
-size_t monthToNum (char * s){
-    char *months[] = {"January", "February", "March", "April","May", "June", "July", "August", "September", "October", "November", "December"};
-    for (int i=0; i<12; i++){
-        if (strcasecmp(s, months[i]) == 0){
-            return i+1;
-        }
+static TNodeS * sortSensorL(TNodeS * l, size_t pedestrians, TSensor * vecSen, size_t i){
+    if (vecSen[i].flag != 'A'){
+        return l;
     }
-    return -1;
+    if(vecSen[i].name != NULL){
+        if(l == NULL || l->pedestrians < pedestrians 
+            || (l->pedestrians == pedestrians && strcasecmp(vecSen[(l->ID)-1].name, vecSen[i].name) > 0)){
+            TNodeS * aux = malloc(sizeof(TNodeS));
+            aux->ID = i+1;
+            aux->pedestrians = pedestrians;
+            aux->tail = l;
+            return aux;
+        }
+        l->tail = sortSensorL(l->tail, pedestrians, vecSen, i);    
+    }
+    return l;
+}
+
+static Tdefective * sortDefectiveL(Tdefective * def, size_t i, TSensor * vec){
+    if((def != NULL && vec[(def->ID)-1].name == NULL) || vec[i].name == NULL){
+        return def;
+    }
+    if(def==NULL || strcasecmp(vec[(def->ID)-1].name, vec[i].name)>0){
+        Tdefective * new = malloc(sizeof(Tdefective));
+        new->ID = i+1;
+        new->tail = def;
+        return new;
+    }
+    def->tail = sortDefectiveL(def->tail, i, vec);
+    return def;
 }
 
 //returns -1 if date 2 is older than date 1
@@ -106,6 +149,112 @@ static TSOld * sortOldByDate(oldestM * old,TSOld * list, int index, TSensor * ve
     return list;
 }
 
+void createSensorV(FILE * fSensor, queryADT q){
+    TSensor * ans = calloc(MAX, sizeof(TSensor));
+    if (ans == NULL){
+        perror("Unable to allocate memory.");
+        exit(1);
+    }
+    char line[LINES];
+    fgets(line, LINES, fSensor);
+    while (!feof(fSensor)){
+        for (int i=0; fgets(line, LINES, fSensor); i++){ //id, name, status
+            char * value = strtok(line, ";");
+            while (value != NULL){
+                size_t pos = atoi(value);
+                value = strtok(NULL, ";");
+                ans[pos - 1].len = strlen(value);
+                ans[pos - 1].name = malloc(ans[pos - 1].len + 1);
+                if (ans[pos - 1].name == NULL) {
+                    perror("Unable to allocate memory.");
+                    exit(1);
+                }
+                strcpy(ans[pos - 1].name, value);
+                value = strtok(NULL, ";");
+                ans[pos - 1].flag = *value; 
+                value = strtok(NULL, ";");
+            }
+        }
+    }
+    q->sensorsID = ans;
+}
+
+TYear * addRec(TYear * years, TYear * ans){
+    if(ans==NULL){
+        return years;
+    }
+    if ( years == NULL || years->year < ans->year){ 
+        ans->tail = years;
+        return ans;
+    }
+    if(years->year == ans->year){
+        years->total += ans->total;
+        years->Dweek += ans->Dweek;
+        years->Dweekend += ans->Dweekend;
+        free(ans);
+        return years;
+    }
+    years->tail = addRec(years->tail, ans); 
+    return years;
+}
+
+void createYearL (FILE * fReadings, queryADT query){
+    TYear * list = NULL;
+    char line2[LINES];
+    fgets(line2, LINES, fReadings);
+    while (!feof(fReadings)){
+        for (int i = 0; fgets(line2, LINES, fReadings); i++){
+            char * value = strtok(line2, ";");//YEAR
+            while (value != NULL){
+                size_t month, dayN, ID, count, time, day, year;
+                TYear * years = calloc(1, sizeof(TYear));
+                year = atoi(value);
+                years->year = year;
+                value = strtok(NULL, ";");//MONTH
+                month = monthToNum(value);
+                value = strtok(NULL, ";"); //DAYN
+                dayN = atoi(value);
+                value = strtok(NULL, ";");//DAY
+                day = dayToNum(value);
+                value = strtok(NULL, ";"); //ID
+                ID = atoi(value);
+                value = strtok(NULL, ";"); //TIME 
+                time = atoi(value);
+                value = strtok(NULL, ";"); //COUNTS 
+                count = atoi(value);
+                if (query->sensorsID[ID - 1].name != NULL && query->sensorsID[ID - 1].flag == 'A'){
+                    years->total += count;
+                    query->sensorsID[ID - 1].total += count;
+                    if(day){
+                        years->Dweekend += count;
+                    } else{
+                        years->Dweek += count;
+                    }
+                    Tdate date = {dayN, month, year, time};
+                    addOldest(query, ID, date, count);
+                }
+                list = addRec(list, years);
+                value = strtok(NULL, ";");
+            }
+        }
+    }
+    query->years = list; 
+}
+
+size_t dayToNum(char * s){            
+    return (s[0] == 'S' || s[0] == 's') ? 1:0; 
+}
+
+size_t monthToNum (char * s){
+    char *months[] = {"January", "February", "March", "April","May", "June", "July", "August", "September", "October", "November", "December"};
+    for (int i=0; i<12; i++){
+        if (strcasecmp(s, months[i]) == 0){
+            return i+1;
+        }
+    }
+    return -1;
+}
+
 void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians){
     int c = dateCmp(q->oldest[ID-1].date, date, &(q->oldest[ID-1].used));
     if(c==-1){
@@ -120,41 +269,7 @@ void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians){
     }
 }
 
-void insertYearL(queryADT query, TYear * years){
-    query->years = years; 
-}
 
-static TNodeS * sortSensorL(TNodeS * l, size_t pedestrians, TSensor * vecSen, size_t i){
-    if (vecSen[i].flag != 'A'){
-        return l;
-    }
-    if(vecSen[i].name != NULL){
-        if(l == NULL || l->pedestrians < pedestrians 
-            || (l->pedestrians == pedestrians && strcasecmp(vecSen[(l->ID)-1].name, vecSen[i].name) > 0)){
-            TNodeS * aux = malloc(sizeof(TNodeS));
-            aux->ID = i+1;
-            aux->pedestrians = pedestrians;
-            aux->tail = l;
-            return aux;
-        }
-        l->tail = sortSensorL(l->tail, pedestrians, vecSen, i);    
-    }
-    return l;
-}
-
-static Tdefective * sortDefectiveL(Tdefective * def, size_t i, TSensor * vec){
-    if((def != NULL && vec[(def->ID)-1].name == NULL) || vec[i].name == NULL){
-        return def;
-    }
-    if(def==NULL || strcasecmp(vec[(def->ID)-1].name, vec[i].name)>0){
-        Tdefective * new = malloc(sizeof(Tdefective));
-        new->ID = i+1;
-        new->tail = def;
-        return new;
-    }
-    def->tail = sortDefectiveL(def->tail, i, vec);
-    return def;
-}
 
 void makeSenL(queryADT q){
     for(int i = 0; i < MAX; i++){

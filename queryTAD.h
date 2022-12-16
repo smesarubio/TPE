@@ -17,37 +17,11 @@ typedef struct date{
     size_t time;
 }Tdate;
 
-typedef struct oldestM{
-    Tdate date;
-    char used;
-    size_t old_count;
-}oldestM;
-
-typedef struct sensor {
-    size_t total;
-    char * name;
-    size_t len;
-    char flag;
-    char defective;
-}TSensor;
-
-typedef struct Nsensor{
-    size_t ID;    
-    size_t pedestrians;
-    struct Nsensor * tail;
-}TNodeS;
-
-typedef struct year {
-    size_t year;
-    size_t total; 
-    size_t Dweek;
-    size_t Dweekend;
-    struct year * tail;
-}TYear;
-
 typedef struct queryCDT * queryADT;
 
-void insertVector(queryADT q, TSensor * vec);
+void createYearL (FILE * fReadings, queryADT query);
+
+void createSensorV(FILE * fSensor, queryADT q);
 
 //returns 1 for weekend or 0 for weekday
 size_t dayToNum(char * s);
@@ -55,24 +29,28 @@ size_t dayToNum(char * s);
 //returns month number 
 size_t monthToNum (char * s);
 
-void insertYearL(queryADT query, TYear * years);
-
 queryADT newQuery(size_t yearFrom, size_t yearTo);
     
 void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians);
 
+//frees every struct inside queryCDT
 void freeQuery(queryADT q);
 
 void makeSenL(queryADT q);
 
+//creates query 1
 void q1(queryADT q, FILE * csvQuery, htmlTable tableQuery );
 
+//creates query 2
 void q2(queryADT q, FILE * csvQuery, htmlTable tableQuery );
 
+//creates query 3
 void q3(queryADT q, FILE * csvQuery, htmlTable tableQuery );
 
+//creates query 4
 void q4(queryADT q, FILE * csvQuery, htmlTable tableQuery );
 
+//creates query 5
 void q5(queryADT q, FILE * csvQuery, htmlTable tableQuery );
 
 #endif

@@ -1,14 +1,7 @@
 #include "htmlTable.h"
 #include "queryTAD.h"
 #include <time.h>
-#define LINES 150
-#define ESNULL(x) ((x)==NULL ? 0:1)
 
-//enum month{January = 1, February, March, April, May, June, July, August, September, October, November, December};
-
-size_t dayToNum(char * s);
-TYear * createYearL (FILE * fReadings, queryADT query, TSensor * vec);
-TSensor * createSensorV(FILE * fSensor);
 void query1(queryADT q);
 void query2(queryADT q);
 void query3(queryADT q);
@@ -47,12 +40,10 @@ int main(int argc, char *argv[]){
     }
 
     queryADT query = newQuery(yearFrom, yearTo); 
-    TSensor * vectorS = createSensorV(fSensor);
-    insertVector(query, vectorS);
-    TYear * years = createYearL(fReadings, query, vectorS);
-    insertYearL(query, years);
+    createSensorV(fSensor, query);
+    createYearL(fReadings, query);
     makeSenL(query);
-
+    
     query1(query);
     query2(query);
     query3(query);
@@ -115,95 +106,4 @@ void query5(queryADT q){
     return;
 }
 
-TSensor * createSensorV(FILE * fSensor){
-    TSensor * ans = calloc(MAX, sizeof(TSensor));
-    if (ans == NULL){
-        perror("Unable to allocate memory.");
-        exit(1);
-    }
-    char line[LINES];
-    fgets(line, LINES, fSensor);
-    while (!feof(fSensor)){
-        for (int i=0; fgets(line, LINES, fSensor); i++){ //id, name, status
-            char * value = strtok(line, ";");
-            while (value != NULL){
-                size_t pos = atoi(value);
-                value = strtok(NULL, ";");
-                ans[pos - 1].len = strlen(value);
-                ans[pos - 1].name = malloc(ans[pos - 1].len + 1);
-                if (ans[pos - 1].name == NULL) {
-                    perror("Unable to allocate memory.");
-                    exit(1);
-                }
-                strcpy(ans[pos - 1].name, value);
-                value = strtok(NULL, ";");
-                ans[pos - 1].flag = *value; 
-                value = strtok(NULL, ";");
-            }
-        }
-    }
-    return ans;
-}
-
-TYear * addRec(TYear * years, TYear * ans){
-    if(ans==NULL){
-        return years;
-    }
-    if ( years == NULL || years->year < ans->year){ 
-        ans->tail = years;
-        return ans;
-    }
-    if(years->year == ans->year){
-        years->total += ans->total;
-        years->Dweek += ans->Dweek;
-        years->Dweekend += ans->Dweekend;
-        free(ans);
-        return years;
-    }
-    years->tail = addRec(years->tail, ans); 
-    return years;
-}
-
-TYear * createYearL (FILE * fReadings, queryADT query, TSensor * vec){
-    TYear * list = NULL;
-    char line2[LINES];
-    fgets(line2, LINES, fReadings);
-    while (!feof(fReadings)){
-        for (int i = 0; fgets(line2, LINES, fReadings); i++){
-            char * value = strtok(line2, ";");//YEAR
-            while (value != NULL){
-                size_t month, dayN, ID, count, time, day, year;
-                TYear * years = calloc(1, sizeof(TYear));
-                year = atoi(value);
-                years->year = year;
-                value = strtok(NULL, ";");//MONTH
-                month = monthToNum(value);
-                value = strtok(NULL, ";"); //DAYN
-                dayN = atoi(value);
-                value = strtok(NULL, ";");//DAY
-                day = dayToNum(value);
-                value = strtok(NULL, ";"); //ID
-                ID = atoi(value);
-                value = strtok(NULL, ";"); //TIME 
-                time = atoi(value);
-                value = strtok(NULL, ";"); //COUNTS 
-                count = atoi(value);
-                if (vec[ID - 1].name != NULL && vec[ID - 1].flag == 'A'){
-                    years->total += count;
-                    vec[ID - 1].total += count;
-                    if(day){
-                        years->Dweekend += count;
-                    } else{
-                        years->Dweek += count;
-                    }
-                    Tdate date = {dayN, month, year, time};
-                    addOldest(query, ID, date, count);
-                }
-                list = addRec(list, years);
-                value = strtok(NULL, ";");
-            }
-        }
-    }
-    return list;
-}
 
