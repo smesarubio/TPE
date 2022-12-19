@@ -55,11 +55,10 @@ typedef struct queryCDT{
     Tdefective * defective; //defective sensors.
 }queryCDT;
 
-queryADT newQuery(size_t yearFrom, size_t yearTo){
+queryADT newQuery(size_t yearFrom, size_t yearTo, int * error){
     queryADT q = calloc(1, sizeof(queryCDT));
     if (q == NULL){
-        perror("Unable to allocate memory.");
-        exit(1);
+        *error = 1;
     }
     q->yearFrom = yearFrom;
     q->yearTo = yearTo;
@@ -154,12 +153,11 @@ static TSOld * sortOldByDate(oldestM * old,TSOld * list, int index, TSensor * ve
 }
 
 //adds years in order to the year list.
-static TYear * addRec(TYear * years, size_t total, size_t year, size_t day){
+static TYear * addRec(TYear * years, size_t total, size_t year, size_t day, int * error){
     if ( years == NULL || years->year < year){ 
         TYear * new = malloc(sizeof(TYear));
         if (new == NULL){
-            perror("Unable to allocate memory.");
-            exit(1);
+            *error = 1; 
         }
         new->year = year;
         new->total = total;
@@ -182,15 +180,15 @@ static TYear * addRec(TYear * years, size_t total, size_t year, size_t day){
         }
         return years;
     }
-    years->tail = addRec(years->tail, total, year, day); 
+    years->tail = addRec(years->tail, total, year, day, error); 
     return years;
 }
 
-void addYear(queryADT query, size_t count, Tdate date, size_t time, size_t day, size_t ID){
+void addYear(queryADT query, size_t count, Tdate date, size_t time, size_t day, size_t ID, int * error){
     if (query->sensorsID[ID - 1].name != NULL && query->sensorsID[ID - 1].flag == 'A'){
         query->sensorsID[ID - 1].total += count;
         addOldest(query, ID, date, count, time);
-        query->years = addRec(query->years, count, date.year, day);
+        query->years = addRec(query->years, count, date.year, day, error);
     }
 }
 
@@ -200,20 +198,21 @@ void printVec(queryADT q){
     }
 }
 
-void addSensor(size_t ID, char * name, char * value, queryADT q){
-    TSensor * ans = calloc(MAX, sizeof(TSensor));
-    ans[ID - 1].len = strlen(name);
-    ans[ID - 1].name = malloc(ans[ID - 1].len + 1);
-    if (ans[ID - 1].name == NULL) {
-        perror("Unable to allocate memory.");
-        exit(1);
+
+void addSensor(size_t ID, char * name, char * value, queryADT q, int * flag, int * error){
+    if(*flag == 0){
+        q->sensorsID = calloc(MAX, sizeof(TSensor));
+        *flag = 1;
     }
-    strcpy(ans[ID - 1].name, name);
-    ans[ID - 1].flag = *value;
-    ans[ID - 1].total = 0;
-    ans[ID - 1].defective = 0;
-    q->sensorsID = ans;
-    
+    q->sensorsID[ID - 1].len = strlen(name);
+    q->sensorsID[ID - 1].name = malloc(q->sensorsID[ID - 1].len + 1);
+    if (q->sensorsID[ID - 1].name == NULL) {
+        *error = 1;
+    }
+    strcpy(q->sensorsID[ID - 1].name, name);
+    q->sensorsID[ID - 1].flag = *value;
+    q->sensorsID[ID - 1].total = 0;
+    q->sensorsID[ID - 1].defective = 0;
 }
 
 void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians, size_t time){

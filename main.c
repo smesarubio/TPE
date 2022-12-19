@@ -5,26 +5,27 @@
 #define delimitador ';'
 
 //creates an array of sensors sorted by ID.
-void createSensorV(FILE * fSensor, queryADT q);
+void createSensorV(FILE * fSensor, queryADT q, int * error);
 //creates a list sorted by year.
-void createYearL (FILE * fReadings, queryADT query);
+void createYearL (FILE * fReadings, queryADT query, int * error);
 void query1(queryADT q);
 void query2(queryADT q);
 void query3(queryADT q);
 void query4(queryADT q);
 void query5(queryADT q);
-void errorCheck();
+void errorCheck(int a);
 
 int main(int argc, char *argv[]){
+    int error = 0;
     if (strcmp(argv[2], "readings.csv") != 0 || strcmp(argv[1], "sensors.csv") != 0){
-        perror("Incorrect parameters.");
-        exit(1);
+        error = 2;
+        errorCheck(error);
     }
     FILE * fSensor = fopen(argv[1], "rt");        
     FILE * fReadings = fopen(argv[2], "rt");
     if (fSensor == NULL || fReadings == NULL){
-        perror("Unable to open file.");
-        exit(1);
+        error = 3;
+        errorCheck(error);
     } 
     size_t yearFrom, yearTo;   
     time_t t = time(NULL);
@@ -35,23 +36,21 @@ int main(int argc, char *argv[]){
     } else if (argc == 4){
         yearFrom = atoi(argv[3]);
         if (yearFrom == 0){ //example: atoi("dosmil") returns 0
-            perror("Incorrect parameters.");
-            exit(1);
+            error = 2;
         }
         yearTo = tm->tm_year + 1900;
     } else {
         yearFrom = atoi(argv[3]);
         yearTo = atoi(argv[4]);
         if (yearTo < yearFrom || yearFrom == 0 || yearTo == 0){ //example: atoi("dosmil") returns 0
-            perror("Incorrect parameters.");
-            exit(1);
+        error = 2;
         }
     }
-
-    queryADT query = newQuery(yearFrom, yearTo); 
-    createSensorV(fSensor, query);
-//    printVec(query);
-    createYearL(fReadings, query);
+    errorCheck(error);
+    queryADT query = newQuery(yearFrom, yearTo, &error); 
+    errorCheck(error);
+    createSensorV(fSensor, query, &error);
+    createYearL(fReadings, query, &error);
     makeSenL(query);
     query1(query);
     query2(query);
@@ -65,9 +64,10 @@ int main(int argc, char *argv[]){
     return 0;
 }
 
-void createSensorV(FILE * fSensor, queryADT q){
+void createSensorV(FILE * fSensor, queryADT q, int * error){
     size_t ID;
     char * name;
+    int flag = 0;
     char line[LINES];
     fgets(line, LINES, fSensor);
     while (!feof(fSensor)){
@@ -78,14 +78,15 @@ void createSensorV(FILE * fSensor, queryADT q){
                 value = strtok(NULL, ";");
                 name = value;
                 value = strtok(NULL, ";");
-                addSensor(ID, name, value, q);
+                addSensor(ID, name, value, q, &flag, error);
                 value = strtok(NULL, ";");
             }
         }
     }
+    errorCheck(error);
 }
 
-void createYearL (FILE * fReadings, queryADT query){
+void createYearL (FILE * fReadings, queryADT query, int * error){
     char line2[LINES];
     fgets(line2, LINES, fReadings);
     while (!feof(fReadings)){
@@ -107,11 +108,13 @@ void createYearL (FILE * fReadings, queryADT query){
                 value = strtok(NULL, ";"); //COUNTS 
                 count = atoi(value);
                 Tdate date = {dayN, month, year, time};
-                addYear(query, count, date, time, day, ID);
+                addYear(query, count, date, time, day, ID, error);
                 value = strtok(NULL, ";");
             }
         }
     }
+    errorCheck(error);
+
 }
 
 void query1(queryADT q){
@@ -164,7 +167,21 @@ void query5(queryADT q){
     return;
 }
 
-void errorCheck(){
-    puts(strerror(errno));
-    exit(1);
+void errorCheck(int a){
+    switch (a)
+    {
+    case 0:
+        return; 
+        break;    
+    case 1:
+        perror("Unable to allocate memory");
+        exit(1);
+        break;
+    case 2:
+        perror("Incorrect parameters");
+        exit(1);
+    case 3:
+        perror("Unable to open files");
+        exit(1);
+    }
 }

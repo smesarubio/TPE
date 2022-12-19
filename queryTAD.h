@@ -26,11 +26,11 @@ typedef struct queryCDT * queryADT;
 void printVec(queryADT q);
 
 //returns a new queryADT.
-queryADT newQuery(size_t yearFrom, size_t yearTo);
+queryADT newQuery(size_t yearFrom, size_t yearTo, int * error);
 
-void addSensor(size_t ID, char * name, char * value, queryADT q);
+void addSensor(size_t ID, char * name, char * value, queryADT q, int * flag, int * error);
 
-void addYear(queryADT query, size_t count, Tdate date, size_t time, size_t day, size_t ID);
+void addYear(queryADT query, size_t count, Tdate date, size_t time, size_t day, size_t ID, int * error);
 
 //creates a list of sensors sorted by pedestrians.
 void makeSenL(queryADT q);
