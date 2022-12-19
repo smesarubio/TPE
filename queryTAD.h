@@ -10,8 +10,6 @@
 #include <strings.h>
 #define MAX 86
 
-extern int errno ;
-
 typedef struct date{
     size_t day;
     size_t month;
