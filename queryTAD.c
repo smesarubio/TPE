@@ -192,13 +192,6 @@ void addYear(queryADT query, size_t count, Tdate date, size_t time, size_t day, 
     }
 }
 
-void printVec(queryADT q){
-    for (int i =0; i<MAX; i++){
-        printf("%s\n",q->sensorsID[i].name);
-    }
-}
-
-
 void addSensor(size_t ID, char * name, char * value, queryADT q, int * flag, int * error){
     if(*flag == 0){
         q->sensorsID = calloc(MAX, sizeof(TSensor));
@@ -229,6 +222,7 @@ void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians, size_t tim
     }
 }
 
+//sorts "defective" and "oldestSortedList"
 void makeSenL(queryADT q){
     for(int i = 0; i < MAX; i++){
         q->sensorsP = sortSensorL(q->sensorsP, q->sensorsID[i].total, q->sensorsID, i);

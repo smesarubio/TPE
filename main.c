@@ -83,7 +83,7 @@ void createSensorV(FILE * fSensor, queryADT q, int * error){
             }
         }
     }
-    errorCheck(error);
+    errorCheck(*error);
 }
 
 void createYearL (FILE * fReadings, queryADT query, int * error){
@@ -113,7 +113,7 @@ void createYearL (FILE * fReadings, queryADT query, int * error){
             }
         }
     }
-    errorCheck(error);
+    errorCheck(*error);
 
 }
 
