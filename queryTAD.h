@@ -8,7 +8,10 @@
 #include <stddef.h>
 #include <string.h>
 #include <strings.h>
+#include <errno.h>
 #define MAX 86
+
+extern int errno ;
 
 typedef struct date{
     size_t day;
@@ -17,16 +20,17 @@ typedef struct date{
     size_t time;
 }Tdate;
 
+
 typedef struct queryCDT * queryADT;
+
+void printVec(queryADT q);
 
 //returns a new queryADT.
 queryADT newQuery(size_t yearFrom, size_t yearTo);
 
-//creates an array of sensors sorted by ID.
-void createSensorV(FILE * fSensor, queryADT q);
+void addSensor(size_t ID, char * name, char * value, queryADT q);
 
-//creates a list sorted by year.
-void createYearL (FILE * fReadings, queryADT query);
+void addYear(queryADT query, size_t count, Tdate date, size_t time, size_t day, size_t ID);
 
 //creates a list of sensors sorted by pedestrians.
 void makeSenL(queryADT q);

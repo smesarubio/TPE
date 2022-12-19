@@ -153,36 +153,6 @@ static TSOld * sortOldByDate(oldestM * old,TSOld * list, int index, TSensor * ve
     return list;
 }
 
-void createSensorV(FILE * fSensor, queryADT q){
-    TSensor * ans = calloc(MAX, sizeof(TSensor));
-    if (ans == NULL){
-        perror("Unable to allocate memory.");
-        exit(1);
-    }
-    char line[LINES];
-    fgets(line, LINES, fSensor);
-    while (!feof(fSensor)){
-        for (int i=0; fgets(line, LINES, fSensor); i++){ //id, name, status
-            char * value = strtok(line, ";");
-            while (value != NULL){
-                size_t pos = atoi(value);
-                value = strtok(NULL, ";");
-                ans[pos - 1].len = strlen(value);
-                ans[pos - 1].name = malloc(ans[pos - 1].len + 1);
-                if (ans[pos - 1].name == NULL) {
-                    perror("Unable to allocate memory.");
-                    exit(1);
-                }
-                strcpy(ans[pos - 1].name, value);
-                value = strtok(NULL, ";");
-                ans[pos - 1].flag = *value; 
-                value = strtok(NULL, ";");
-            }
-        }
-    }
-    q->sensorsID = ans;
-}
-
 //adds years in order to the year list.
 static TYear * addRec(TYear * years, size_t total, size_t year, size_t day){
     if ( years == NULL || years->year < year){ 
@@ -216,37 +186,34 @@ static TYear * addRec(TYear * years, size_t total, size_t year, size_t day){
     return years;
 }
 
-void createYearL (FILE * fReadings, queryADT query){
-    char line2[LINES];
-    fgets(line2, LINES, fReadings);
-    while (!feof(fReadings)){
-        for (int i = 0; fgets(line2, LINES, fReadings); i++){
-            char * value = strtok(line2, ";");//YEAR
-            while (value != NULL){
-                size_t month, dayN, ID, count, time, day, year;
-                year = atoi(value);
-                value = strtok(NULL, ";");//MONTH
-                month = monthToNum(value);
-                value = strtok(NULL, ";"); //DAYN
-                dayN = atoi(value);
-                value = strtok(NULL, ";");//DAY
-                day = dayToNum(value);
-                value = strtok(NULL, ";"); //ID
-                ID = atoi(value);
-                value = strtok(NULL, ";"); //TIME 
-                time = atoi(value);
-                value = strtok(NULL, ";"); //COUNTS 
-                count = atoi(value);
-                if (query->sensorsID[ID - 1].name != NULL && query->sensorsID[ID - 1].flag == 'A'){
-                    query->sensorsID[ID - 1].total += count;
-                    Tdate date = {dayN, month, year, time};
-                    addOldest(query, ID, date, count, time);
-                    query->years = addRec(query->years, count, year, day);
-                }
-                value = strtok(NULL, ";");
-            }
-        }
+void addYear(queryADT query, size_t count, Tdate date, size_t time, size_t day, size_t ID){
+    if (query->sensorsID[ID - 1].name != NULL && query->sensorsID[ID - 1].flag == 'A'){
+        query->sensorsID[ID - 1].total += count;
+        addOldest(query, ID, date, count, time);
+        query->years = addRec(query->years, count, date.year, day);
     }
+}
+
+void printVec(queryADT q){
+    for (int i =0; i<MAX; i++){
+        printf("%s\n",q->sensorsID[i].name);
+    }
+}
+
+void addSensor(size_t ID, char * name, char * value, queryADT q){
+    TSensor * ans = calloc(MAX, sizeof(TSensor));
+    ans[ID - 1].len = strlen(name);
+    ans[ID - 1].name = malloc(ans[ID - 1].len + 1);
+    if (ans[ID - 1].name == NULL) {
+        perror("Unable to allocate memory.");
+        exit(1);
+    }
+    strcpy(ans[ID - 1].name, name);
+    ans[ID - 1].flag = *value;
+    ans[ID - 1].total = 0;
+    ans[ID - 1].defective = 0;
+    q->sensorsID = ans;
+    
 }
 
 void addOldest(queryADT q, size_t ID, Tdate date, size_t pedestrians, size_t time){
@@ -402,11 +369,11 @@ void freeQuery(queryADT q) {
     for (int j=0; j<MAX; j++){
         free(q->sensorsID[j].name);
     }
+    free(q->sensorsID);
     freeRecOld(q->sortedOld);
     freeRecYears(q->years);
     freeRecSen(q->sensorsP); 
     freeRecDef(q->defective);
-    free(q->sensorsID);
     free(q);    
 }
 

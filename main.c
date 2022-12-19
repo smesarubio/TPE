@@ -1,13 +1,19 @@
 #include "htmlTable.h"
 #include "queryTAD.h"
 #include <time.h>
+#define LINES 150
+#define delimitador ';'
 
+//creates an array of sensors sorted by ID.
+void createSensorV(FILE * fSensor, queryADT q);
+//creates a list sorted by year.
+void createYearL (FILE * fReadings, queryADT query);
 void query1(queryADT q);
 void query2(queryADT q);
 void query3(queryADT q);
 void query4(queryADT q);
 void query5(queryADT q);
-
+void errorCheck();
 
 int main(int argc, char *argv[]){
     if (strcmp(argv[2], "readings.csv") != 0 || strcmp(argv[1], "sensors.csv") != 0){
@@ -44,6 +50,7 @@ int main(int argc, char *argv[]){
 
     queryADT query = newQuery(yearFrom, yearTo); 
     createSensorV(fSensor, query);
+//    printVec(query);
     createYearL(fReadings, query);
     makeSenL(query);
     query1(query);
@@ -56,6 +63,55 @@ int main(int argc, char *argv[]){
     fclose(fReadings);
     fclose(fSensor);
     return 0;
+}
+
+void createSensorV(FILE * fSensor, queryADT q){
+    size_t ID;
+    char * name;
+    char line[LINES];
+    fgets(line, LINES, fSensor);
+    while (!feof(fSensor)){
+        for (int i=0; fgets(line, LINES, fSensor); i++){ //id, name, status
+            char * value = strtok(line, ";");
+            while (value != NULL){
+                ID = atoi(value);
+                value = strtok(NULL, ";");
+                name = value;
+                value = strtok(NULL, ";");
+                addSensor(ID, name, value, q);
+                value = strtok(NULL, ";");
+            }
+        }
+    }
+}
+
+void createYearL (FILE * fReadings, queryADT query){
+    char line2[LINES];
+    fgets(line2, LINES, fReadings);
+    while (!feof(fReadings)){
+        for (int i = 0; fgets(line2, LINES, fReadings); i++){
+            char * value = strtok(line2, ";");//YEAR
+            while (value != NULL){
+                size_t month, dayN, ID, count, time, day, year;
+                year = atoi(value);
+                value = strtok(NULL, ";");//MONTH
+                month = monthToNum(value);
+                value = strtok(NULL, ";"); //DAYN
+                dayN = atoi(value);
+                value = strtok(NULL, ";");//DAY
+                day = dayToNum(value);
+                value = strtok(NULL, ";"); //ID
+                ID = atoi(value);
+                value = strtok(NULL, ";"); //TIME 
+                time = atoi(value);
+                value = strtok(NULL, ";"); //COUNTS 
+                count = atoi(value);
+                Tdate date = {dayN, month, year, time};
+                addYear(query, count, date, time, day, ID);
+                value = strtok(NULL, ";");
+            }
+        }
+    }
 }
 
 void query1(queryADT q){
@@ -108,4 +164,7 @@ void query5(queryADT q){
     return;
 }
 
-
+void errorCheck(){
+    puts(strerror(errno));
+    exit(1);
+}
