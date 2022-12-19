@@ -2,7 +2,7 @@
 #include "queryTAD.h"
 #include <time.h>
 #define LINES 150
-#define delimitador ';'
+#define delimitador ";"
 
 //creates an array of sensors sorted by ID.
 void createSensorV(FILE * fSensor, queryADT q, int * error);
@@ -72,14 +72,14 @@ void createSensorV(FILE * fSensor, queryADT q, int * error){
     fgets(line, LINES, fSensor);
     while (!feof(fSensor)){
         for (int i=0; fgets(line, LINES, fSensor); i++){ //id, name, status
-            char * value = strtok(line, ";");
+            char * value = strtok(line, delimitador);
             while (value != NULL){
                 ID = atoi(value);
-                value = strtok(NULL, ";");
+                value = strtok(NULL, delimitador);
                 name = value;
-                value = strtok(NULL, ";");
+                value = strtok(NULL, delimitador);
                 addSensor(ID, name, value, q, &flag, error);
-                value = strtok(NULL, ";");
+                value = strtok(NULL, delimitador);
             }
         }
     }
@@ -91,25 +91,25 @@ void createYearL (FILE * fReadings, queryADT query, int * error){
     fgets(line2, LINES, fReadings);
     while (!feof(fReadings)){
         for (int i = 0; fgets(line2, LINES, fReadings); i++){
-            char * value = strtok(line2, ";");//YEAR
+            char * value = strtok(line2, delimitador);//YEAR
             while (value != NULL){
                 size_t month, dayN, ID, count, time, day, year;
                 year = atoi(value);
-                value = strtok(NULL, ";");//MONTH
+                value = strtok(NULL, delimitador);//MONTH
                 month = monthToNum(value);
-                value = strtok(NULL, ";"); //DAYN
+                value = strtok(NULL, delimitador); //DAYN
                 dayN = atoi(value);
-                value = strtok(NULL, ";");//DAY
+                value = strtok(NULL, delimitador);//DAY
                 day = dayToNum(value);
-                value = strtok(NULL, ";"); //ID
+                value = strtok(NULL, delimitador); //ID
                 ID = atoi(value);
-                value = strtok(NULL, ";"); //TIME 
+                value = strtok(NULL, delimitador); //TIME 
                 time = atoi(value);
-                value = strtok(NULL, ";"); //COUNTS 
+                value = strtok(NULL, delimitador); //COUNTS 
                 count = atoi(value);
                 Tdate date = {dayN, month, year, time};
                 addYear(query, count, date, time, day, ID, error);
-                value = strtok(NULL, ";");
+                value = strtok(NULL, delimitador);
             }
         }
     }
