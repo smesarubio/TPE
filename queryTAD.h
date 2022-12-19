@@ -8,7 +8,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <strings.h>
-#include <errno.h>
 #define MAX 86
 
 extern int errno ;
